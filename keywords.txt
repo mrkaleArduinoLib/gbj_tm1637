@@ -1,0 +1,39 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+gbj_tm1637	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+begin	KEYWORD2
+display	KEYWORD2
+printRadixOn	KEYWORD2
+printRadixOff	KEYWORD2
+printRadixToggle	KEYWORD2
+printRadixClear	KEYWORD2
+printRadixFill	KEYWORD2
+printGrid	KEYWORD2
+printClear	KEYWORD2
+printFill	KEYWORD2
+write	KEYWORD2
+initLastResult	KEYWORD2
+setLastResult	KEYWORD2
+setContrastControl	KEYWORD2
+setFont	KEYWORD2
+getLastResult	KEYWORD2
+getLastCommand	KEYWORD2
+getPrintWidth	KEYWORD2
+isSuccess	KEYWORD2
+isError	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+GBJ_TM1637_VERSION	LITERAL1
+GBJ_TM1637_SUCCESS	LITERAL1
+GBJ_TM1637_ERR_ACK	LITERAL1
