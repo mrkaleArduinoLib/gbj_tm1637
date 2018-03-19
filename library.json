@@ -1,7 +1,7 @@
 {
   "name": "gbjTM1637",
   "keywords": "display, 7segment, LED",
-  "description": "The library controls TM1637 controller platforms 7-segment LED displays. It inherits the system Print class in order to use method print() with various datatypes. The library imports font definition from external include file.",
+  "description": "The library controls TM1637 controller with seven segment LED displays. It inherits the system Print class in order to use method print() with various datatypes. The library imports font definition from external include file.",
   "repository": {
     "type": "git",
     "url": "https://github.com/mrkaleArduinoLib/gbj_tm1637.git"
