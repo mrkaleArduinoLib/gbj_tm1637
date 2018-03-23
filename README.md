@@ -5,9 +5,9 @@ Library for 7-segment LED displays controlled by the driver TM1637.
   - Screen buffer is considered as an image of controller's graphical memory.
   - Graphical library methods (prefixed with "print") performs all graphical manipulation in the screen buffer, which state reflects the desired image for display.
   - Finally the dedicated method transmits the content of the screen buffer to the driver and it causes to display the image on the attached display.
-- The driver TM1637 can control up to 6 LED digits each with radix (decimal dot or colon).
+- The driver TM1637 can control up to 6 7-segment digital tube digits each with radix (decimal dot or colon).
 - The library controls 7-segment glyphs (digits) independently from radix 8th segments of glyphs.
-- The library can control the TM1636 driver as well, which is binary compatible with TM1637 but controls just 4 LEDs.
+- The library can control the TM1636 driver as well, which is binary compatible with TM1637 but controls just 4 tubes.
 - The library does not implement key scan capabilities of the driver.
 - The library inherits from the system library **Print**, so that all *print* operations are available.
 
@@ -41,6 +41,7 @@ The font is an assignment of a glyph definition to particular ASCII code.
 ## Constants
 - **GBJ\_TM1637\_VERSION**: Name and semantic version of the library.
 - **GBJ\_TM1637\_SUCCESS**: Result code for successful processing.
+- **GBJ\_TM1637\_ERR\_PINS**: Error code for equal controller pins.
 - **GBJ\_TM1637\_ERR\_ACK**: Error code for not acknowledged transmission by the driver.
 
 
@@ -120,7 +121,8 @@ The method has all arguments defaulted and calling without any parameters is equ
 ## begin()
 #### Description
 The method sets the microcontroller's pins dedicated for the driver and preforms initial sequence recommended by the data sheet for the controller.
-- It clears the display and sets it to the normal operating mode.
+- The method clears the display and sets it to the normal operating mode.
+- The method checks whether pins set by constructor are not equal.
 
 #### Syntax
 	uint8_t begin();

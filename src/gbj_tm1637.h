@@ -47,7 +47,8 @@
 
 // Result and error codes
 #define GBJ_TM1637_SUCCESS    0
-#define GBJ_TM1637_ERR_ACK    255
+#define GBJ_TM1637_ERR_PINS   255
+#define GBJ_TM1637_ERR_ACK    254
 
 
 class gbj_tm1637 : public Print
@@ -92,7 +93,8 @@ gbj_tm1637(uint8_t pinClk = 2, uint8_t pinDio = 3, uint8_t grids = 4);
   DESCRIPTION:
   The method sets the microcontroller's pins dedicated for the driver and perfoms
   initial sequence recommended by the data sheet for the controller.
-  - It clears the display and sets it to the normal operating mode.
+  - The method clears the display and sets it to the normal operating mode.
+  - The method checks whether pins set by constructor are not equal. 
 
   PARAMETERS: none
 

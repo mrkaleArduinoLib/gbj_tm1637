@@ -12,10 +12,15 @@ gbj_tm1637::gbj_tm1637(uint8_t pinClk, uint8_t pinDio, uint8_t grids)
 uint8_t gbj_tm1637::begin()
 {
   initLastResult();
+  // Check pin duplicity
+  if (_status.pinClk == _status.pinDio) return setLastResult(GBJ_TM1637_ERR_PINS);
+  // Setup pins
   pinMode(_status.pinClk, OUTPUT);
   pinMode(_status.pinDio, OUTPUT);
+  // Initialize controller
   setContrastControl();
   printClear();
+  printRadixClear();
   return display();
 }
 
@@ -162,17 +167,8 @@ uint8_t gbj_tm1637::ackTransmission()
 
 void gbj_tm1637::busWrite(uint8_t data)
 {
-  for (uint8_t bit = 0; bit < 8; bit++)
-  {
-    // Change data while clock is low
-    digitalWrite(_status.pinClk, LOW);
-    digitalWrite(_status.pinDio, data & B1);
-    waitPulseClk();
-    // Activate clock and data bit transmission
-    digitalWrite(_status.pinClk, HIGH);
-    waitPulseClk();
-    data >>= 1;
-  }
+  digitalWrite(_status.pinClk, LOW); // For active rising edge of clock pulse
+  shiftOut(_status.pinDio, _status.pinClk, LSBFIRST, data);
 }
 
 
@@ -232,8 +228,8 @@ void gbj_tm1637::bufferWrite(uint8_t data, uint8_t gridStart, uint8_t gridStop)
   gridStop = min(gridStop, _print.width - 1);
   for (_print.grid = gridStart; _print.grid <= gridStop; _print.grid++)
   {
-    data &= 0x7F; // Clear radix bit
-    _print.buffer[_print.grid] &= 0x80;  // Clear digit bits
+    data &= 0x7F; // Clear radix bit in data
+    _print.buffer[_print.grid] &= 0x80;  // Clear digit bits in screen buffer
     _print.buffer[_print.grid] |= data;  // Set digit bits but leave radix bit intact
   }
 }
