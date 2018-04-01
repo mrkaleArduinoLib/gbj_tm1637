@@ -3,7 +3,7 @@
   gbj_tm1637
 
   DESCRIPTION:
-  Library for 7-segment LED displays controlled by the driver TM1637.
+  Library for 7-segment digital tubes displays controlled by the driver TM1637.
   - The library controls the driver as a state machine with screen buffer in the
     microcontroller's operating memory, which is transmitted to the controller
     for displaying.
@@ -13,13 +13,14 @@
       for display.
     - Finally the dedicated method transmitts the content of the screen buffer
       to the driver and it causes to display the image on the attached display.
-  - The driver TM1637 can control up to 6 LED digits each with radix (decimal dot
-    or colon).
+  - The driver TM1637 can control up to 6 digital tubes each with radix (decimal
+    dot or colon).
   - The library controls 7-segment glyphs (digits) independently from radix 8th
     segments of glyphs.
   - The library can control the TM1636 driver as well, which is binary compatible
-    with TM1637 but controls just 4 LEDs.
-  - The library does not implement key scan capabalities of the driver.
+    with TM1637 but controls just 4 digital tubes.
+  - The library does not implement key scan capabalities of the driver, because
+    display modules with TM1637 controller do not implement a keypad.
 
   LICENSE:
   This program is free software; you can redistribute it and/or modify
@@ -84,7 +85,7 @@ public:
   RETURN:
   Result code.
 */
-gbj_tm1637(uint8_t pinClk = 2, uint8_t pinDio = 3, uint8_t grids = 4);
+gbj_tm1637(uint8_t pinClk = 2, uint8_t pinDio = 3, uint8_t digits = 4);
 
 
 /*
@@ -94,7 +95,7 @@ gbj_tm1637(uint8_t pinClk = 2, uint8_t pinDio = 3, uint8_t grids = 4);
   The method sets the microcontroller's pins dedicated for the driver and perfoms
   initial sequence recommended by the data sheet for the controller.
   - The method clears the display and sets it to the normal operating mode.
-  - The method checks whether pins set by constructor are not equal. 
+  - The method checks whether pins set by constructor are not equal.
 
   PARAMETERS: none
 
@@ -121,85 +122,140 @@ uint8_t display();
 
 
 /*
-  Manipulate radix segments
+  Turn display off or on
+
+  DESCRIPTION:
+  Particular method either turns on or off the entired display module without
+  changing current contrast level.
+  - Both methods are suitable for making a display module blink.
+
+  PARAMETERS: none
+
+  RETURN:
+  Result code.
+*/
+uint8_t displayOn();
+uint8_t displayOff();
+
+
+/*
+  Clear entire digital tubes including radixes and set printing position
+
+  DESCRIPTION:
+  The method turns off all segments including for radixes of all digital tubes
+  and then sets the printing position for subsequent printing.
+
+  PARAMETERS:
+  digit - Number of digital tube counting from 0 where the printing should start
+          after display clearing.
+          - Data type: non-negative integer
+          - Default value: 0
+          - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
+
+  RETURN: none
+*/
+inline void displayClear(uint8_t digit = 0) { printDigitOff(); printRadixOff(); placePrint(digit); }
+inline void moduleClear(uint8_t digit = 0) { displayClear(digit); } // For compatibility with TM1638
+
+
+/*
+  Manipulate digital tubes' radixes of a display module
 
   DESCRIPTION:
   The particular method performs corresponding manipulation with radix segment
-  (usually 8th one) of particular glyph without influance on its glyph segments
+  (usually 8th one) of particular glyph without influence on its glyph segments
   (first 7 segments) in the screen buffer.
-  - Default grid is suitable for 4-digit displays aimed for digital clocks
-    with colon instead of decimal point of second (number 1) digit.
 
   PARAMETERS:
-  grid - Driver's grid (LED digit) number counting from 0, which radix segment
-         should be manipulated.
-           - Data type: non-negative integer
-           - Default value: 1
-           - Limited range: 0 ~ grids from constructor
+  digit - Driver's digit tube number counting from 0, which radix segment
+          should be manipulated.
+          - Data type: non-negative integer
+          - Default value: none
+          - Limited range: 0 ~ 5
 
   RETURN: none
 */
-inline void printRadixOn(uint8_t grid = 1) { if (grid < _print.width) _print.buffer[grid] |= 0x80; };
-inline void printRadixOff(uint8_t grid = 1) { if (grid < _print.width) _print.buffer[grid] &= ~0x80; };
-inline void printRadixToggle(uint8_t grid = 1) { if (grid < _print.width) _print.buffer[grid] ^= 0x80; };
+inline void printRadixOn(uint8_t digit) { if (digit < _status.digits) _print.buffer[addrGrid(digit)] |= 0x80; }
+inline void printRadixOn() { for (uint8_t digit = 0; digit < _status.digits; digit++) printRadixOn(digit); }
+inline void printRadixOff(uint8_t digit) { if (digit < _status.digits) _print.buffer[addrGrid(digit)] &= ~0x80; }
+inline void printRadixOff() { for (uint8_t digit = 0; digit < _status.digits; digit++) printRadixOff(digit); }
+inline void printRadixToggle(uint8_t digit) { if (digit < _status.digits) _print.buffer[addrGrid(digit)] ^= 0x80; }
+inline void printRadixToggle() { for (uint8_t digit = 0; digit < _status.digits; digit++) printRadixToggle(digit); }
 
 
 /*
-  Manipulate all radix segments at once
+  Manipulate digit segments
 
   DESCRIPTION:
-  The particular method performs corresponding manipulation with all radix
-  segments at once of the display without changing glyph segments.
+  The particular method sets glyph segments (first 7 ones) of particular digit
+  (digital tube) without influence on its radix segment in the screen buffer.
 
-  PARAMETERS: none
+  PARAMETERS:
+  digit - Driver's digit (digital tube) number counting from 0, which glyph
+          segments should be manipulated.
+          - Data type: non-negative integer
+          - Default value: none
+          - Limited range: 0 ~ 5
+
+  segmentMask - Bit mask defining what segments should be turned on. Segments
+                are marked starting from A to G and relate to mask bits 0 to 6
+                counting from least significant bit. The 7th bit relates to radix
+                segment and therefore it is ignored.
+                - Data type: non-negative integer
+                - Default value: none
+                - Limited range: 0 ~ 127
 
   RETURN: none
 */
-inline void printRadixFill() { for (uint8_t grid = 0; grid < _print.width; grid++) printRadixOn(grid); };
-inline void printRadixClear() { for (uint8_t grid = 0; grid < _print.width; grid++) printRadixOff(grid); };
+inline void printDigit(uint8_t digit, uint8_t segmentMask) { if (digit < _status.digits) gridWrite(segmentMask, digit, digit); }
+inline void printDigit(uint8_t segmentMask) { gridWrite(segmentMask); }
+inline void printDigitOn(uint8_t digit) { printDigit(digit, 0x7F); }
+inline void printDigitOn() { printDigit(0x7F); }
+inline void printDigitOff(uint8_t digit) { printDigit(digit, 0x00); }
+inline void printDigitOff() { printDigit(0x00); }
 
 
 /*
-  Manipulate glyph segments
+  Set printing position within digital tubes
 
   DESCRIPTION:
-  The method sets glyph segments (first 7 ones) of particular glyph without
-  influance on its radix segment in the screen buffer.
-  - Default grid is for the very first digit of the display.
+  The method stores desired position of a digital tube where the subsequent
+  print should start.
 
   PARAMETERS:
-  grid - Driver's grid (LED digit) number counting from 0, which glyph segments
-         should be manipulated.
+  digit - Number of digital tube counting from 0 where the printing should start.
+          - Data type: non-negative integer
+          - Default value: 0
+          - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
+
+  RETURN: none
+*/
+inline void placePrint(uint8_t digit = 0) { if (digit < _status.digits) _print.digit = digit; };
+
+
+/*
+  Print text at desired printing position
+
+  DESCRIPTION:
+  The method prints text starting on provided or default position on digital tubes.
+  - The method clears the display right before printing.
+
+  PARAMETERS:
+  text - Pointer to a text that should be printed.
          - Data type: non-negative integer
-         - Default value: 0
-         - Limited range: 0 ~ grids from constructor
+         - Default value: none
+         - Limited range: microcontroller addressing range
 
- segmentMask - Bit mask defining what segments should be turned on. Segments
-               marking starting from A to G relate to mask bits 0 to 6 counting
-               from least significant bit. The 7th bit relates to radix segment
-               and therefore it is ignored.
-               - Data type: non-negative integer
-               - Default value: 0xFF (all glyph segments turned on)
-               - Limited range: 0 ~ 127
+  digit - Printing position for starting the printing.
+          - Data type: non-negative integer
+          - Default value: 0
+          - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
 
   RETURN: none
 */
-inline void printGrid(uint8_t grid = 0, uint8_t segmentMask = 0x7F) { if (grid < getPrintWidth()) bufferWrite(segmentMask, grid, grid); };
+inline void printText(const char* text, uint8_t digit = 0) { displayClear(digit); print(text); };
+inline void printText(String text, uint8_t digit = 0) { displayClear(digit); print(text); };
 
-
-/*
-  Manipulate all glyph segments at once
-
-  DESCRIPTION:
-  The particular method performs corresponding manipulation with all glyph
-  segments at once of the display without changing glyph radix segments.
-
-  PARAMETERS: none
-
-  RETURN: none
-*/
-inline void printFill() { bufferWrite(0x7F); };
-inline void printClear() { bufferWrite(0x00); };
 
 /*
   Print class inheritance
@@ -251,7 +307,24 @@ size_t write(const uint8_t* buffer, size_t size);
 //------------------------------------------------------------------------------
 inline void initLastResult() { _status.lastResult = GBJ_TM1637_SUCCESS; };
 inline uint8_t setLastResult(uint8_t lastResult = GBJ_TM1637_SUCCESS) { return _status.lastResult = lastResult; };
-uint8_t setContrastControl(uint8_t contrast = 3);
+
+
+/*
+  Set contrast of the digital tubes
+
+  DESCRIPTION:
+  The method set constrast level of all digital tubes and simultaniously
+  turns display on.
+
+  PARAMETERS:
+  contrast - Level of constrast/brightness.
+             - Data type: non-negative integer
+             - Default value: 3
+             - Limited range: 0 ~ 7
+
+  RETURN: none
+*/
+uint8_t setContrast(uint8_t contrast = 3);
 
 
 /*
@@ -293,10 +366,11 @@ void setFont(const uint8_t* fontTable, uint8_t fontTableSize);
 //------------------------------------------------------------------------------
 inline uint8_t getLastResult() { return _status.lastResult; }; // Result of a recent operation
 inline uint8_t getLastCommand() { return _status.lastCommand; }; // Command code of a recent operation
-inline uint8_t getPrintWidth() { return _print.width; }; // Horizontal display capacity
-inline uint8_t getPrint() { return _print.grid; }; // Current display position
-inline bool    isSuccess() { return _status.lastResult == GBJ_TM1637_SUCCESS; } // Flag about successful recent operation
-inline bool    isError() { return !isSuccess(); } // Flag about erroneous recent operation
+inline uint8_t getDigits() { return _status.digits; } // Digital tubes for displaying
+inline uint8_t getContrast() { return _status.contrast; } // Current contrast
+inline uint8_t getPrint() { return _print.digit; }; // Current display position
+inline bool isSuccess() { return _status.lastResult == GBJ_TM1637_SUCCESS; } // Flag about successful recent operation
+inline bool isError() { return !isSuccess(); } // Flag about erroneous recent operation
 
 
 private:
@@ -305,20 +379,25 @@ private:
 //------------------------------------------------------------------------------
 enum Commands
 {
-  // 1. Data command setting (0x40)
-  CMD_DATA_WRITE = 0b01000000, // 0x40, also Automatic address setting and Normal mode
-  CMD_DATA_READ  = 0b01000010, // 0x42
-  CMD_DATA_ADDR  = 0b01000100, // 0x44 Fixed address setting
-  CMD_DATA_TEST  = 0b01001000, // 0x48 Test mode
-  // 2. Address command setting (0xC0)
-  CMD_ADDR_INIT  = 0b11000000, // 0xC0 - address of the GRID (from 0) in lower nibble
-  // 3. Display control (0x80)
-  CMD_DISP_OFF   = 0b10000000, // 0x80 - display off
-  CMD_DISP_INIT  = 0b10001000, // 0x88 - display on, contrast in lower 3 bits
+  // Data command setting (0x40)
+  CMD_DATA_INIT   = 0b01000000, // 0x40, Command set, ORed by proper next ones
+  CMD_DATA_WRITE  = 0b00, // 0x00, Write data to display register
+  CMD_DATA_READ   = 0b10, // 0x02, Read key scanning data
+  CMD_DATA_AUTO   = 0b000, // 0x00, Automatic address adding
+  CMD_DATA_FIXED  = 0b100, // 0x04, Fixed address
+  CMD_DATA_NORMAL = 0b0000, // 0x00, Normal mode
+  CMD_DATA_TEST   = 0b1000, // 0x08, Test mode
+  // Address command setting (0xC0)
+  CMD_ADDR_INIT = 0b11000000, // 0xC0, Address set, ORed by display address 0x00 ~ 0x05 in lower nibble
+  // Display control (0x80)
+  CMD_DISP_INIT = 0b10000000, // 0x80, Display control, ORed by proper next ones
+  CMD_DISP_OFF  = 0b0000, // 0x00, Display is off
+  CMD_DISP_ON   = 0b1000, // 0x08, Display is on, ORed by contrast 0x00 ~ 0x07 in lower 3 bits
 };
 enum Geometry // Controller TM1637
 {
-  GRIDS = 6,
+  DIGITS = 6, // Usable and maximal implemented digital tubes
+  BYTES_ADDR = 6, // By datasheet maximal addressable register position
 };
 enum Timing
 {
@@ -339,9 +418,8 @@ enum Rasters
 //------------------------------------------------------------------------------
 struct
 {
-  uint8_t buffer[GRIDS];  // Screen buffer
-  uint8_t width;  // Number of grids for printing characters
-  uint8_t grid; // Current grid for next printing
+  uint8_t buffer[BYTES_ADDR];  // Screen buffer
+  uint8_t digit; // Current grid for next printing
 } _print; // Display hardware parameters for printing
 struct Bitmap
 {
@@ -354,6 +432,8 @@ struct
   uint8_t lastCommand;  // Command code recently sent to two-wire bus
   uint8_t pinClk; // Number of serial clock pin
   uint8_t pinDio; // Number of data input/output pin
+  uint8_t digits; // Amount of controlled digital tubes
+  uint8_t contrast; // Current contrast level
 } _status;  // Microcontroller status features
 
 
@@ -361,12 +441,13 @@ struct
 // Private methods
 //------------------------------------------------------------------------------
 inline void swapByte(uint8_t a, uint8_t b) { if (a > b) {uint8_t t = a; a = b; b = t;} };
+inline uint8_t addrGrid(uint8_t digit) { return digit; }
 inline uint8_t setLastCommand(uint8_t lastCommand) { return _status.lastCommand = lastCommand; };
 void waitPulseClk();  // Delay for clock pulse duration
 void beginTransmission(); // Start condition
 void endTransmission(); // Stop condition
 void busWrite(uint8_t data);  // Write byte to the bus
-void bufferWrite(uint8_t data = 0x00, uint8_t indexStart = 0, uint8_t indexStop = GRIDS); // Fill screen buffer with data
+void gridWrite(uint8_t segmentMask = 0x00, uint8_t gridStart = 0, uint8_t gridStop = DIGITS); // Fill screen buffer with digit masks
 uint8_t ackTransmission();  // Acknowledgment of transmission
 uint8_t busSend(uint8_t command); // Send sole command
 uint8_t busSend(uint8_t command, uint8_t data); // Send data at fixed address

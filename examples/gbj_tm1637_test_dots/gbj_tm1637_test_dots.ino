@@ -11,7 +11,7 @@
     - TM1637 pin Vcc to Arduino pin 5V
     - TM1637 pin GND to Arduino pin GND
   - The sketch is configured to work with 4-digit LED displays.
-  - The sketch does not utilize fonts and prints to controller grids directly.
+  - The sketch does not utilize fonts and prints to controller digits directly.
   - The sketch displays `1` for each tested digit.
 
   LICENSE:
@@ -67,13 +67,12 @@ void setup()
 void loop()
 {
   if (Sled.isError()) return;
-  Sled.printClear();
-  Sled.printRadixClear();
+  Sled.displayClear();
   // Test all digits one by one
-  for (unsigned char grid = 0; grid < Sled.getPrintWidth(); grid++)
+  for (unsigned char digit = 0; digit < Sled.getDigits(); digit++)
   {
-    Sled.printGrid(grid, 0b00000110);
-    Sled.printRadixOn(grid);
+    Sled.printDigitOn(digit);
+    Sled.printRadixOn(digit);
     displayTest();
   }
   delay(PERIOD_TEST);

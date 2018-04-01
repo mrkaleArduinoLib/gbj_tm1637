@@ -10,7 +10,7 @@
     - TM1637 pin Vcc to Arduino pin 5V
     - TM1637 pin GND to Arduino pin GND
   - The sketch is configured to work with 4-digit LED displays.
-  - The sketch utilizes basic font and prints with system functions.
+  - The sketch utilizes basic font.
 
   LICENSE:
   This program is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@ const unsigned int PERIOD_VALUE = 200; // Time delay in miliseconds for displayi
 const unsigned char PIN_TM1637_CLK = 2;
 const unsigned char PIN_TM1637_DIO = 3;
 const unsigned char TM1637_DIGITS = 4;
+const unsigned char TM1637_COLON = 1;
 
 gbj_tm1637 Sled = gbj_tm1637(PIN_TM1637_CLK, PIN_TM1637_DIO, TM1637_DIGITS);
 char textBuffer[13];  // Full 6 controller grids = 6 chars + 6 radixes + \0
@@ -77,19 +78,19 @@ void setup()
 void loop()
 {
   if (Sled.isError()) return;
-  Sled.print("Init");
+  Sled.printText("Init");
   displayTest();
   for (int i = 120; i >= 0; i--)
   {
     unsigned char minute = i / 60;
     unsigned char second = i % 60;
     sprintf(textBuffer, "%02u%02u", minute, second);
-    Sled.print(textBuffer);
-    Sled.printRadixToggle(1);
+    Sled.printText(textBuffer);
+    Sled.printRadixToggle(TM1637_COLON);
     Sled.display();
     delay(PERIOD_VALUE);
   }
-  Sled.printRadixClear();
-  Sled.print("End");
+  Sled.printRadixOff();
+  Sled.printText("End", 1);
   displayTest();
 }

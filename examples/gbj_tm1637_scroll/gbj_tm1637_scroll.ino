@@ -10,7 +10,7 @@
     - TM1637 pin Vcc to Arduino pin 5V
     - TM1637 pin GND to Arduino pin GND
   - The sketch is configured to work with 4-digit LED displays.
-  - The sketch utilizes basic font and prints with system functions.
+  - The sketch utilizes basic font.
 
   LICENSE:
   This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@
   Author: Libor Gabaj
 */
 #include "gbj_tm1637.h"
-#include "../fonts/font7seg_basic.h"
+#include "../extras/font7seg_basic.h"
 #define SKETCH "GBJ_TM1637_SCROLL 1.0.0"
 
 const unsigned int PERIOD_TEST = 2000;  // Time in miliseconds between tests
@@ -88,7 +88,7 @@ void loop()
   if (Sled.isError()) return;
   for (unsigned char i = 0; i < textBuffer.length(); i++)
   {
-    Sled.print(textBuffer.substring(i));
+    Sled.printText(textBuffer.substring(i));
     Sled.display();
     delay(PERIOD_VALUE);
   }

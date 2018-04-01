@@ -1,11 +1,11 @@
 #include "gbj_tm1637.h"
 
 
-gbj_tm1637::gbj_tm1637(uint8_t pinClk, uint8_t pinDio, uint8_t grids)
+gbj_tm1637::gbj_tm1637(uint8_t pinClk, uint8_t pinDio, uint8_t digits)
 {
   _status.pinClk = pinClk;
   _status.pinDio = pinDio;
-  _print.width = constrain(grids, 1, GRIDS);
+  _status.digits = min(digits, DIGITS);
 }
 
 
@@ -18,9 +18,8 @@ uint8_t gbj_tm1637::begin()
   pinMode(_status.pinClk, OUTPUT);
   pinMode(_status.pinDio, OUTPUT);
   // Initialize controller
-  setContrastControl();
-  printClear();
-  printRadixClear();
+  moduleClear();
+  if (setContrast()) return getLastResult();
   return display();
 }
 
@@ -31,19 +30,19 @@ uint8_t gbj_tm1637::begin()
 // Print one character determined by a byte of ASCII code
 size_t gbj_tm1637::write(uint8_t ascii)
 {
-  if (_print.grid >= _print.width) return 0;
+  if (_print.digit >= _status.digits) return 0;
   uint8_t mask = getFontMask(ascii);
   if (mask == FONT_MASK_WRONG)
   {
     if (String(".,:").indexOf(ascii) >= 0)  // Detect radix
     {
-      printRadixOn(_print.grid - 1); // Set radix to the previous grid
+      printRadixOn(_print.digit - 1); // Set radix to the previous digit
     }
     return 0;
   }
   else
   {
-    printGrid(_print.grid, mask);
+    printDigit(_print.digit, mask);
     return 1;
   }
 }
@@ -52,28 +51,25 @@ size_t gbj_tm1637::write(uint8_t ascii)
 // Print null terminated character array
 size_t  gbj_tm1637::write(const char* text)
 {
-  printClear();
-  uint8_t grids = 0;
+  uint8_t digits = 0;
   uint8_t i = 0;
-  while (text[i] != '\0' && _print.grid < _print.width)
+  while (text[i] != '\0' && _print.digit < _status.digits)
   {
-    grids += write(text[i++]);
+    digits += write(text[i++]);
   }
-  return grids;
+  return digits;
 }
 
 
 // Print byte array with length
 size_t  gbj_tm1637::write(const uint8_t* buffer, size_t size)
 {
-  printClear();
-  uint8_t grids = 0;
-  _print.grid = 0;
-  for (uint8_t i = 0; i < size && _print.grid < _print.width; i++)
+  uint8_t digits = 0;
+  for (uint8_t i = 0; i < size && _print.digit < _status.digits; i++)
   {
-    grids += write(buffer[i]);
+    digits += write(buffer[i]);
   }
-  return grids;
+  return digits;
 }
 
 
@@ -82,19 +78,32 @@ size_t  gbj_tm1637::write(const uint8_t* buffer, size_t size)
 //------------------------------------------------------------------------------
 uint8_t gbj_tm1637::display()
 {
-  if (busSend(CMD_DATA_WRITE)) return getLastResult(); // Automatic addressing
-  if (busSend(CMD_ADDR_INIT, _print.buffer, _print.width)) return getLastResult();
+  // Automatic addressing
+  if (busSend(CMD_DATA_INIT | CMD_DATA_NORMAL | CMD_DATA_WRITE | CMD_DATA_AUTO)) return getLastResult();
+  if (busSend(CMD_ADDR_INIT, _print.buffer, sizeof(_print.buffer) / sizeof(_print.buffer[0]))) return getLastResult();
   return getLastResult();
+}
+
+
+uint8_t gbj_tm1637::displayOn()
+{
+  return setContrast(_status.contrast);
+}
+
+
+uint8_t gbj_tm1637::displayOff()
+{
+  return busSend(CMD_DISP_INIT | CMD_DISP_OFF);
 }
 
 
 //------------------------------------------------------------------------------
 // Setters
 //------------------------------------------------------------------------------
-uint8_t gbj_tm1637::setContrastControl(uint8_t contrast)
+uint8_t gbj_tm1637::setContrast(uint8_t contrast)
 {
-  contrast &= 0x07;
-  return busSend(CMD_DISP_INIT | contrast);
+  _status.contrast = contrast & 0x07;
+  return busSend(CMD_DISP_INIT | CMD_DISP_ON | _status.contrast);
 }
 
 
@@ -221,16 +230,16 @@ uint8_t gbj_tm1637::busSend(uint8_t command, uint8_t* buffer, uint8_t bufferItem
 }
 
 
-// The method leaves grid cursor after last print grid
-void gbj_tm1637::bufferWrite(uint8_t data, uint8_t gridStart, uint8_t gridStop)
+// The method leaves digit cursor after last print digit
+void gbj_tm1637::gridWrite(uint8_t segmentMask, uint8_t gridStart, uint8_t gridStop)
 {
   swapByte(gridStart, gridStop);
-  gridStop = min(gridStop, _print.width - 1);
-  for (_print.grid = gridStart; _print.grid <= gridStop; _print.grid++)
+  gridStop = min(gridStop, _status.digits - 1);
+  for (_print.digit = gridStart; _print.digit <= gridStop; _print.digit++)
   {
-    data &= 0x7F; // Clear radix bit in data
-    _print.buffer[_print.grid] &= 0x80;  // Clear digit bits in screen buffer
-    _print.buffer[_print.grid] |= data;  // Set digit bits but leave radix bit intact
+    segmentMask &= 0x7F; // Clear radix bit in segment mask
+    _print.buffer[addrGrid(_print.digit)] &= 0x80;  // Clear digit bits in screen buffer
+    _print.buffer[addrGrid(_print.digit)] |= segmentMask;  // Set digit bits but leave radix bit intact
   }
 }
 

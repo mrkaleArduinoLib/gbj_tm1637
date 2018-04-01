@@ -12,28 +12,35 @@ gbj_tm1637	KEYWORD1
 #######################################
 begin	KEYWORD2
 display	KEYWORD2
-printRadixOn	KEYWORD2
-printRadixOff	KEYWORD2
-printRadixToggle	KEYWORD2
-printRadixClear	KEYWORD2
-printRadixFill	KEYWORD2
-printGrid	KEYWORD2
-printClear	KEYWORD2
-printFill	KEYWORD2
-write	KEYWORD2
-initLastResult	KEYWORD2
-setLastResult	KEYWORD2
-setContrastControl	KEYWORD2
-setFont	KEYWORD2
-getLastResult	KEYWORD2
+displayClear	KEYWORD2
+displayOff	KEYWORD2
+displayOn	KEYWORD2
+getContrast	KEYWORD2
+getDigits	KEYWORD2
 getLastCommand	KEYWORD2
-getPrintWidth	KEYWORD2
-isSuccess	KEYWORD2
+getLastResult	KEYWORD2
+getPrint	KEYWORD2
+initLastResult	KEYWORD2
 isError	KEYWORD2
+isSuccess	KEYWORD2
+moduleClear	KEYWORD2
+placePrint	KEYWORD2
+printDigit	KEYWORD2
+printDigitOff	KEYWORD2
+printDigitOn	KEYWORD2
+printRadixOff	KEYWORD2
+printRadixOn	KEYWORD2
+printRadixToggle	KEYWORD2
+printText	KEYWORD2
+setContrast	KEYWORD2
+setFont	KEYWORD2
+setLastResult	KEYWORD2
+write	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
 GBJ_TM1637_VERSION	LITERAL1
 GBJ_TM1637_SUCCESS	LITERAL1
+GBJ_TM1637_ERR_PINS	LITERAL1
 GBJ_TM1637_ERR_ACK	LITERAL1
