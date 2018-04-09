@@ -155,7 +155,6 @@ uint8_t displayOff();
   RETURN: none
 */
 inline void displayClear(uint8_t digit = 0) { printDigitOff(); printRadixOff(); placePrint(digit); }
-inline void moduleClear(uint8_t digit = 0) { displayClear(digit); } // For compatibility with TM1638
 
 
 /*
@@ -237,14 +236,14 @@ inline void placePrint(uint8_t digit = 0) { if (digit < _status.digits) _print.d
   Print text at desired printing position
 
   DESCRIPTION:
-  The method prints text starting on provided or default position on digital tubes.
+  The method prints text starting from provided or default position on digital tubes.
   - The method clears the display right before printing.
 
   PARAMETERS:
   text - Pointer to a text that should be printed.
          - Data type: non-negative integer
          - Default value: none
-         - Limited range: microcontroller addressing range
+         - Limited range: microcontroller's addressing range
 
   digit - Printing position for starting the printing.
           - Data type: non-negative integer
@@ -283,19 +282,19 @@ inline void printText(String text, uint8_t digit = 0) { displayClear(digit); pri
          very beginnng of the display, i.e., from the first digit.
          - Data type: non-negative integer
          - Default value: none
-         - Limited range: microcontroller addressing range
+         - Limited range: microcontroller's addressing range
 
   buffer - Pointer to a string, which part should be displayed from the very
            beginnng of the display, i.e., from the first digit.
          - Data type: non-negative integer
          - Default value: none
-         - Limited range: microcontroller addressing range
+         - Limited range: microcontroller's addressing range
 
   size - Number of characters that should be displayed from the very beginnng of
          the display, i.e., from the first digit.
          - Data type: non-negative integer
          - Default value: none
-         - Limited range: microcontroller addressing range
+         - Limited range: microcontroller's addressing range
 */
 size_t write(uint8_t ascii);
 size_t write(const char* text);
@@ -344,7 +343,7 @@ uint8_t setContrast(uint8_t contrast = 3);
   fontTable - Pointer to a font definition table.
               - Data type: non-negative integer
               - Default value: none
-              - Limited range: microcontroller addressing range
+              - Limited range: microcontroller's addressing range
 
   fontTableSize - The number of bytes that should be utilized from the font
                   table.
