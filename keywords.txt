@@ -16,7 +16,9 @@ displayClear	KEYWORD2
 displayOff	KEYWORD2
 displayOn	KEYWORD2
 getContrast	KEYWORD2
+getContrastMax	KEYWORD2
 getDigits	KEYWORD2
+getDigitsMax	KEYWORD2
 getLastCommand	KEYWORD2
 getLastResult	KEYWORD2
 getPrint	KEYWORD2
@@ -32,6 +34,7 @@ printRadixOff	KEYWORD2
 printRadixOn	KEYWORD2
 printRadixToggle	KEYWORD2
 printText	KEYWORD2
+printGlyphs	KEYWORD2
 setContrast	KEYWORD2
 setFont	KEYWORD2
 setLastResult	KEYWORD2
@@ -40,7 +43,3 @@ write	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
-GBJ_TM1637_VERSION	LITERAL1
-GBJ_TM1637_SUCCESS	LITERAL1
-GBJ_TM1637_ERR_PINS	LITERAL1
-GBJ_TM1637_ERR_ACK	LITERAL1

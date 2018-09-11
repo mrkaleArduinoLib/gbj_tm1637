@@ -1,15 +1,18 @@
 /*
   NAME:
-  Demonstration of text printing with the library gbj_tm1637
+  Brigthness test of a display module with TM1637 controller
 
   DESCRIPTION:
-  The sketch prints some informative texts on the display and uptime for 2 minutes.
+  The sketch turns on all glyph segments of all digital tubes and changes their
+  brightness by controlling contrast.
   - Connect controller's pins to Arduino's pins as follows:
-    - TM1637 pin CLK to Arduino pin D2
-    - TM1637 pin DIO to Arduino pin D3
-    - TM1637 pin Vcc to Arduino pin 5V
-    - TM1637 pin GND to Arduino pin GND
+    - TM1638 pin CLK to Arduino pin D2
+    - TM1638 pin DIO to Arduino pin D3
+    - TM1638 pin Vcc to Arduino pin 5V
+    - TM1638 pin GND to Arduino pin GND
   - The sketch is configured to work with 4-digit LED displays.
+  - The sketch does not manipulate radix segments of digital tubes.
+  - The sketch signals brightness level by displaying its number on each digit.
   - The sketch utilizes basic font.
 
   LICENSE:
@@ -21,18 +24,15 @@
 */
 #include "gbj_tm1637.h"
 #include "../extras/font7seg_basic.h"
-#define SKETCH "GBJ_TM1637_PRINT 1.0.0"
+#define SKETCH "GBJ_TM1637_TEST_BRIGHTNESS 1.0.0"
 
-const unsigned int PERIOD_TEST = 2000;  // Time in miliseconds between tests
-const unsigned int PERIOD_VALUE = 200; // Time delay in miliseconds for displaying a value
+const unsigned int PERIOD_TEST = 1000;  // Time in miliseconds between tests
+const unsigned int PERIOD_VALUE = 500; // Time delay in miliseconds for displaying a value
 const unsigned char PIN_TM1637_CLK = 2;
 const unsigned char PIN_TM1637_DIO = 3;
 const unsigned char TM1637_DIGITS = 4;
-const unsigned char TM1637_COLON = 1;
-const unsigned int TEST_SECONDS = 120; // Countdown starting testing seconds
 
 gbj_tm1637 Sled = gbj_tm1637(PIN_TM1637_CLK, PIN_TM1637_DIO, TM1637_DIGITS);
-char textBuffer[TM1637_DIGITS + 1];
 
 
 void errorHandler()
@@ -47,7 +47,7 @@ void errorHandler()
 void displayTest()
 {
   if (Sled.display()) errorHandler();
-  delay(PERIOD_TEST);
+  delay(PERIOD_VALUE);
 }
 
 
@@ -76,23 +76,20 @@ void setup()
   }
 }
 
-
 void loop()
 {
   if (Sled.isError()) return;
-  Sled.printText("Init");
-  displayTest();
-  for (int i = TEST_SECONDS; i >= 0; i--)
+  // Test all contrast levels
+  for (unsigned char contrast = 0; contrast <= Sled.getContrastMax(); contrast++)
   {
-    unsigned char minute = i / 60;
-    unsigned char second = i % 60;
-    sprintf(textBuffer, "%02u%02u", minute, second);
-    Sled.printText(textBuffer);
-    Sled.printRadixToggle(TM1637_COLON);
-    Sled.display();
-    delay(PERIOD_VALUE);
+    Sled.setContrast(contrast);
+    String contrastText;
+    for (unsigned char digit = 0; digit < Sled.getDigits(); digit++)
+    {
+      contrastText.concat(Sled.getContrast());
+    }
+    Sled.printText(contrastText);
+    displayTest();
   }
-  Sled.printRadixOff();
-  Sled.printText("End", 1);
-  displayTest();
+  delay(PERIOD_TEST);
 }

@@ -33,7 +33,6 @@
  */
 #ifndef GBJ_TM1637_H
 #define GBJ_TM1637_H
-#define GBJ_TM1637_VERSION "GBJ_TM1637 1.0.0"
 
 #if defined(__AVR__)
   #if ARDUINO >= 100
@@ -46,15 +45,21 @@
   #include <Particle.h>
 #endif
 
-// Result and error codes
-#define GBJ_TM1637_SUCCESS    0
-#define GBJ_TM1637_ERR_PINS   255
-#define GBJ_TM1637_ERR_ACK    254
-
 
 class gbj_tm1637 : public Print
 {
 public:
+//------------------------------------------------------------------------------
+// Public constants
+//------------------------------------------------------------------------------
+static const String VERSION;
+enum ResultCodes
+{
+  SUCCESS = 0,
+  ERROR_PINS = 255, // Error defining pins, usually both are the same
+  ERROR_ACK = 254, // Error at acknowledging a command
+};
+
 //------------------------------------------------------------------------------
 // Public methods
 //------------------------------------------------------------------------------
@@ -257,6 +262,31 @@ inline void printText(String text, uint8_t digit = 0) { displayClear(digit); pri
 
 
 /*
+  Print text at desired printing position without impact on radixes
+
+  DESCRIPTION:
+  The method prints text starting from provided or default position on digital
+  tubes and leaves radixes intact.
+  - The method clears only digit without radixes right before printing.
+
+  PARAMETERS:
+  text - Pointer to a text that should be printed.
+         - Data type: non-negative integer
+         - Default value: none
+         - Limited range: microcontroller's addressing range
+
+  digit - Printing position for starting the printing.
+          - Data type: non-negative integer
+          - Default value: 0
+          - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
+
+  RETURN: none
+*/
+inline void printGlyphs(const char* text, uint8_t digit = 0) { printDigitOff(); placePrint(digit); print(text); };
+inline void printGlyphs(String text, uint8_t digit = 0) { printDigitOff(); placePrint(digit); print(text); };
+
+
+/*
   Print class inheritance
 
   DESCRIPTION:
@@ -304,8 +334,8 @@ size_t write(const uint8_t* buffer, size_t size);
 //------------------------------------------------------------------------------
 // Public setters - they usually return result code.
 //------------------------------------------------------------------------------
-inline void initLastResult() { _status.lastResult = GBJ_TM1637_SUCCESS; };
-inline uint8_t setLastResult(uint8_t lastResult = GBJ_TM1637_SUCCESS) { return _status.lastResult = lastResult; };
+inline void initLastResult() { _status.lastResult = SUCCESS; };
+inline uint8_t setLastResult(uint8_t lastResult = SUCCESS) { return _status.lastResult = lastResult; };
 
 
 /*
@@ -365,10 +395,12 @@ void setFont(const uint8_t* fontTable, uint8_t fontTableSize);
 //------------------------------------------------------------------------------
 inline uint8_t getLastResult() { return _status.lastResult; }; // Result of a recent operation
 inline uint8_t getLastCommand() { return _status.lastCommand; }; // Command code of a recent operation
-inline uint8_t getDigits() { return _status.digits; } // Digital tubes for displaying
+inline uint8_t getDigits() { return _status.digits; } // Current digital tubes for displaying
+inline uint8_t getDigitsMax() { return DIGITS; } // Maximal supported digital tubes
 inline uint8_t getContrast() { return _status.contrast; } // Current contrast
+inline uint8_t getContrastMax() { return 7; } // Maximal contrast
 inline uint8_t getPrint() { return _print.digit; }; // Current display position
-inline bool isSuccess() { return _status.lastResult == GBJ_TM1637_SUCCESS; } // Flag about successful recent operation
+inline bool isSuccess() { return _status.lastResult == SUCCESS; } // Flag about successful recent operation
 inline bool isError() { return !isSuccess(); } // Flag about erroneous recent operation
 
 

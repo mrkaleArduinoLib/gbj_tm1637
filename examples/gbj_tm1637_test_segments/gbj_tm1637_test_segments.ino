@@ -52,7 +52,7 @@ void setup()
   Serial.begin(9600);
   Serial.println(SKETCH);
   Serial.println("Libraries:");
-  Serial.println(GBJ_TM1637_VERSION);
+  Serial.println(gbj_tm1637::VERSION);
   Serial.println("---");
   // Initialize controller
   if (Sled.begin())

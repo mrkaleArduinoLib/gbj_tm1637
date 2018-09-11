@@ -12,7 +12,8 @@
     - TM1637 pin GND to Arduino pin GND
   - The sketch is configured to work with 4-digit LED displays.
   - The sketch does not utilize fonts and prints to controller digits directly.
-  - The sketch displays `1` for each tested digit.
+  - The sketch displays `8` for each tested digit, i.e., displays all digit's
+    segments including radix one, if present in hardware.
 
   LICENSE:
   This program is free software; you can redistribute it and/or modify
@@ -53,7 +54,7 @@ void setup()
   Serial.begin(9600);
   Serial.println(SKETCH);
   Serial.println("Libraries:");
-  Serial.println(GBJ_TM1637_VERSION);
+  Serial.println(gbj_tm1637::VERSION);
   Serial.println("---");
   // Initialize controller
   if (Sled.begin())

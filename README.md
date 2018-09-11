@@ -1,14 +1,14 @@
-[#placePrint](#placePrint)<a id="library"></a>
+<a id="library"></a>
 # gbjTM1637
 Library for utilizing display modules with TM1637 controller. Those modules are available in variants with colon (clock displays) only after the second digit or with decimal point after every digit, usually with 4 digits, although the controller can drive up to 6 digits.
-The library controls the driver as a state machine with screen buffer in the microcontroller's operating memory, which is transmitted to the controller for displaying.
+The library controls the controller as a state machine with screen buffer in the microcontroller's operating memory, which is transmitted to the controller for displaying.
 - Screen buffer is considered as an image of controller's graphical memory.
 - Graphical library methods (prefixed with "**print**") performs all graphical manipulation in the screen buffer, which state reflects the desired image for display.
-- Finally the dedicated method [display()](#display) transmits the content of the screen buffer to the driver and it causes to display the image on the attached display (digital tubes).
-- The library and driver TM1637 can control up to 6 digital tubes.
-- The library can control the TM1636 driver as well, which is binary compatible with TM1637, but controls just 4 tubes.
+- Finally the dedicated method [display()](#display) transmits the content of the screen buffer to the controller and it causes to display the image on the attached display (digital tubes).
+- The library and controller TM1637 can control up to 6 digital tubes.
+- The library can control the TM1636 controller as well, which is binary compatible with TM1637, but controls just 4 tubes.
 - The library controls 7-segment glyphs (digits) mutual independently from radix 8th segments of digital tubes.
-- The library does not implement key scan capabilities of the driver.
+- The library does not implement key scan capabilities of the controller.
 - The library inherits from the system library **Print**, so that all system *print* operations are available.
 
 
@@ -39,11 +39,13 @@ The font is an assignment of a glyph definition to particular ASCII code.
 
 <a id="Constants"></a>
 ## Constants
-- **GBJ\_TM1637\_VERSION**: Name and semantic version of the library.
-- **GBJ\_TM1637\_SUCCESS**: Result code for successful processing.
+All constants are embedded into the class as static ones including result and error codes.
+
+- **gbj\_tm1637::VERSION**: Name and semantic version of the library.
+- **gbj\_tm1637::SUCCESS**: Result code for successful processing.
 ### Errors
-- **GBJ\_TM1637\_ERR\_PINS**: Error code for incorrectly assigned microcontroller's pins to controller's pins, usually some o them are duplicated.
-- **GBJ\_TM1637\_ERR\_ACK**: Error code for not acknowledged transmission by the driver.
+- **gbj\_tm1637::ERROR\_PINS**: Error code for incorrectly assigned microcontroller's pins to controller's pins, usually some of them are duplicated.
+- **gbj\_tm1637::ERROR\_ACK**: Error code for not acknowledged transmission by the controller.
 
 
 <a id="interface"></a>
@@ -69,6 +71,7 @@ It is possible to use functions from the parent library [Print](#dependency), wh
 - [printDigitOn()](#printDigitSwitch)
 - [printDigitOff()](#printDigitSwitch)
 - [printText()](#printText)
+- [printGlyphs()](#printGlyphs)
 - [placePrint()](#placePrint)
 - [write()](#write)
 
@@ -82,7 +85,9 @@ It is possible to use functions from the parent library [Print](#dependency), wh
 - [getLastResult()](#getLastResult)
 - [getLastCommand()](#getLastCommand)
 - [getDigits()](#getDigits)
+- [getDigitsMax()](#getDigitsMax)
 - [getContrast()](#getContrast)
+- [getContrastMax()](#getContrastMax)
 - [getPrint()](#getPrint)
 - [isSuccess()](#isSuccess)
 - [isError()](#isError)
@@ -108,9 +113,9 @@ The constructor method sanitizes and stores physical features of the display to 
 
 
 <a id="prm_digits"></a>
-- **digits**: Number of 7-segment digital tubes to be controlled. Default value is aimed for clock display with 4 digits as well as for TM1636 driver.
-	- **Valid values**: 1 ~ 6 (according to attached LED display)
-	- **Default value**: 4 (for usual clock LED displays)
+- **digits**: Number of 7-segment digital tubes to be controlled. Default value is aimed for clock display with 4 digits as well as for TM1636 controller.
+	- **Valid values**: 0 ~ 6 ([getDigitsMax()](#getDigitsMax) according to attached LED display)
+	- **Default value**: 4 (for usual clock and numeric LED displays)
 
 
 #### Returns
@@ -122,7 +127,7 @@ The library instance object for display geometry.
 <a id="begin"></a>
 ## begin()
 #### Description
-The method sets the microcontroller's pins dedicated for the driver and preforms initial sequence recommended by the data sheet for the controller.
+The method sets the microcontroller's pins dedicated for the controller and preforms initial sequence recommended by the data sheet for the controller.
 - The method clears the display and sets it to the normal operating mode.
 - The method checks whether pins set by constructor are not equal.
 
@@ -141,8 +146,8 @@ Some of [result or error codes](#constants).
 <a id="display"></a>
 ## display()
 #### Description
-The method transmits current content of the screen buffer to the driver, so that its content is displayed immediately and stays unchanged until another transmission.
-- The method utilizes automatic addressing mode of the driver.
+The method transmits current content of the screen buffer to the controller, so that its content is displayed immediately and stays unchanged until another transmission.
+- The method utilizes automatic addressing mode of the controller.
 
 #### Syntax
 	uint8_t display();
@@ -164,7 +169,7 @@ Some of [result or error codes](#constants).
 <a id="displaySwitch"></a>
 ## displayOn(), displayOff()
 #### Description
-Particular method either turns on or off the entired display module without changing current contrast level.
+Particular method either turns on or off the entire display module without changing current contrast level.
 - Both methods are suitable for making a display module blinking.
 
 #### Syntax
@@ -194,7 +199,7 @@ The method turns off all segments including for radixes of all digital tubes and
 
 #### Parameters
 - **digit**: Number of digital tube counting from 0 where the printing should start after display clearing.
-	- **Valid values**: 0 ~ 5 ([digits - 1](#prm_digits) from constructor)
+	- **Valid values**: 0 ~ [digits - 1](#prm_digits) (from constructor)
 	- **Default value**: 0
 
 #### Returns
@@ -226,8 +231,8 @@ The particular method performs corresponding manipulation with radix segment (us
 	void printRadixToggle();
 
 #### Parameters
-- **digit**: Driver's digit tube number counting from 0, which radix segment should be manipulated.
-	- **Valid values**: 0 ~ 5 ([digits - 1](#prm_digits) from constructor)
+- **digit**: controller's digit tube number counting from 0, which radix segment should be manipulated.
+	- **Valid values**: 0 ~ [digits - 1](#prm_digits) (from constructor)
 	- **Default value**: none
 
 #### Returns
@@ -253,8 +258,8 @@ The method sets glyph segments (first 7 ones) of particular digital tube without
 	void printDigit(uint8_t segmentMask);
 
 #### Parameters
-- **digit**: Driver's digital tube number counting from 0, which glyph segments should be manipulated.
-	- **Valid values**: 0 ~ 5 ([digits - 1](#prm_digits) from constructor)
+- **digit**: controller's digital tube number counting from 0, which glyph segments should be manipulated.
+	- **Valid values**: 0 ~ [digits - 1](#prm_digits) (from constructor)
 	- **Default value**: none
 
 
@@ -286,8 +291,8 @@ The particular method performs corresponding manipulation turning on or off with
 	void printDigitOff();
 
 #### Parameters
-- **digit**: Driver's digit tube number counting from 0, which glyph segments should be manipulated.
-	- **Valid values**: 0 ~ 5 ([digits - 1](#prm_digits) from constructor)
+- **digit**: controller's digit tube number counting from 0, which glyph segments should be manipulated.
+	- **Valid values**: 0 ~ [digits - 1](#prm_digits) (from constructor)
 	- **Default value**: none
 
 #### Returns
@@ -316,15 +321,48 @@ The method prints text starting from provided or default position on digital tub
 	- **Default value**: none
 
 
-- **digit**: Driver's digit tube number counting from 0, where printing should start.
-	- **Valid values**: 0 ~ 5 ([digits - 1](#prm_digits) from constructor)
+- **digit**: controller's digit tube number counting from 0, where printing should start.
+	- **Valid values**: 0 ~ [digits - 1](#prm_digits) (from constructor)
 	- **Default value**: 0
 
 #### Returns
 None
 
 #### See also
+[printGlyphs()](#printGlyphs)
+
 [printDigit()](#printDigit)
+
+[Back to interface](#interface)
+
+
+<a id="printGlyphs"></a>
+## printGlyphs()
+#### Description
+The method prints text starting from provided or default position on digital tubes without impact on radixes.
+- The method clears digits right before printing leaving radixes intact.
+- The method is suitable for displaying data, where radixes independent of them and are used for another purpose.
+- It is a wrapper method for subsequent calling methods [printDigitOff()](#printDigitOff), [placePrint()](#placePrint), and system method *print()*.
+
+#### Syntax
+	void printGlyphs(const char* text, uint8_t digit);
+	void printGlyphs(String text, uint8_t digit);
+
+#### Parameters
+- **text**: Pointer to a text that should be printed.
+	- **Valid values**: microcontroller's addressing range
+	- **Default value**: none
+
+
+- **digit**: controller's digit tube number counting from 0, where printing should start.
+	- **Valid values**: 0 ~ [digits - 1](#prm_digits) (from constructor)
+	- **Default value**: 0
+
+#### Returns
+None
+
+#### See also
+[printText()](#printText)
 
 [Back to interface](#interface)
 
@@ -333,14 +371,14 @@ None
 ## placePrint()
 #### Description
 The method stores desired position of a digital tube where the subsequent print should start.
-- The method should be call right before any printing method, which does not have its input parameter for setting printing position.
+- The method should be called right before any printing method, which does not have its input parameter for setting printing position.
 
 #### Syntax
 	void placePrint(uint8_t digit);
 
 #### Parameters
 - **digit**: Printing position for starting a print action.
-	- **Valid values**: 0 ~ 5 ([digits - 1](#prm_digits) from constructor)
+	- **Valid values**: 0 ~ [digits - 1](#prm_digits) (from constructor)
 	- **Default value**: 0
 
 #### Returns
@@ -399,7 +437,7 @@ None
 <a id="initLastResult"></a>
 ## initLastResult()
 #### Description
-The method sets internal status of recent processing of a controller code to success with value of macro [GBJ\_TM1637\_SUCCESS](#constants). It is usually called right before any operation with the controller in order to reset the internal status.
+The method sets internal status of recent processing of a controller code to success with value of macro [gbj\_tm1637::SUCCESS](#constants). It is usually called right before any operation with the controller in order to reset the internal status.
 
 #### Syntax
     void initLastResult();
@@ -429,7 +467,7 @@ The method sets the internal status of recent processing with controller to inpu
 #### Parameters
 - **lastResult**: Desired result code that should be set as a last result code.
   - *Valid values*: One of macro for [result codes](#constants).
-  - *Default value*: [GBJ\_TM1367\_SUCCESS](#constants)
+  - *Default value*: [gbj\_tm1367::SUCCESS](#constants)
 
 #### Returns
 New (actual) result code of recent operation.
@@ -454,7 +492,7 @@ The method sets the level of the display contrast.
 
 #### Parameters
 - **contrast**: Level of contrast/brightness.
-	- *Valid values*: 0 ~ 7
+	- *Valid values*: 0 ~ 7 ([getContrastMax()](#getContrastMax))
 	- *Default value*: 3
 
 #### Returns
@@ -563,7 +601,27 @@ None
 Current number of controlled digital tubes by a library instance object.
 
 #### See also
-[gbj_tm1638()](#gbj_tm1638)
+[gbj_tm1637()](#gbj_tm1637)
+
+[Back to interface](#interface)
+
+
+<a id="getDigitsMax"></a>
+## getDigitsMax()
+#### Description
+The method returns maximal number of digital tubes that the controller supports.
+
+#### Syntax
+	uint8_t getDigitsMax();
+
+#### Parameters
+None
+
+#### Returns
+Maximal supported number of digital tubes by the controller, which is 6.
+
+#### See also
+[getDigits()](#getDigits)
 
 [Back to interface](#interface)
 
@@ -580,10 +638,30 @@ The method returns the current contrast/brightness level store in the library in
 None
 
 #### Returns
-Current contrast level counting in the range 0 ~ 7.
+Current contrast level counting up to [getContrastMax()](#getContrastMax).
 
 #### See also
 [setContrast()](#setContrast)
+
+[Back to interface](#interface)
+
+
+<a id="getContrastMax"></a>
+## getContrastMax()
+#### Description
+The method returns the maximal contrast/brightness level supported by the controller.
+
+#### Syntax
+	uint8_t getContrastMax();
+
+#### Parameters
+None
+
+#### Returns
+Maximal contrast level supported by the controller, which is 7.
+
+#### See also
+[getContrast()](#getContrast)
 
 [Back to interface](#interface)
 

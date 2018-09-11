@@ -3,7 +3,7 @@
   Demonstration of scrollilng text with the library gbj_tm1637
 
   DESCRIPTION:
-  The sketch prints some informative texts on the display and uptime for 1 minute.
+  The sketch prints some informative texts on the display and scrolls it.
   - Connect controller's pins to Arduino's pins as follows:
     - TM1637 pin CLK to Arduino pin D2
     - TM1637 pin DIO to Arduino pin D3
@@ -55,7 +55,8 @@ void setup()
   Serial.begin(9600);
   Serial.println(SKETCH);
   Serial.println("Libraries:");
-  Serial.println(GBJ_TM1637_VERSION);
+  Serial.println(gbj_tm1637::VERSION);
+  Serial.println("Fonts:");
   Serial.println(GBJ_FONT7SEG_VERSION);
   Serial.println("---");
   // Initialize controller

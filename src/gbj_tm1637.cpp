@@ -1,4 +1,5 @@
 #include "gbj_tm1637.h"
+const String gbj_tm1637::VERSION = "GBJ_TM1637 1.0.0";
 
 
 gbj_tm1637::gbj_tm1637(uint8_t pinClk, uint8_t pinDio, uint8_t digits)
@@ -13,7 +14,7 @@ uint8_t gbj_tm1637::begin()
 {
   initLastResult();
   // Check pin duplicity
-  if (_status.pinClk == _status.pinDio) return setLastResult(GBJ_TM1637_ERR_PINS);
+  if (_status.pinClk == _status.pinDio) return setLastResult(ERROR_PINS);
   // Setup pins
   pinMode(_status.pinClk, OUTPUT);
   pinMode(_status.pinDio, OUTPUT);
@@ -102,7 +103,7 @@ uint8_t gbj_tm1637::displayOff()
 //------------------------------------------------------------------------------
 uint8_t gbj_tm1637::setContrast(uint8_t contrast)
 {
-  _status.contrast = contrast & 0x07;
+  _status.contrast = contrast & getContrastMax();
   return busSend(CMD_DISP_INIT | CMD_DISP_ON | _status.contrast);
 }
 
@@ -164,7 +165,7 @@ uint8_t gbj_tm1637::ackTransmission()
   {
     if (millis() - tsStart > TIMING_ACK)
     {
-      setLastResult(GBJ_TM1637_ERR_ACK);
+      setLastResult(ERROR_ACK);
       break;
     }
   }
