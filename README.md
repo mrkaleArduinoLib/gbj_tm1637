@@ -96,14 +96,14 @@ It is possible to use functions from the parent library [Print](#dependency), wh
 <a id="gbj_tm1637"></a>
 ## gbj_tm1637()
 #### Description
-The constructor method sanitizes and stores physical features of the display to the class instance object.
+The constructor method sanitizes and stores physical features of the display and limited ones for the sake of a sketch to the class instance object.
 
 #### Syntax
     gbj_tm1637(uint8_t pinClk, uint8_t pinDio, uint8_t grids);
 
 #### Parameters
 - **pinClk**: Microcontroller pin's number utilized as a serial clock.
-	- **Valid values**: non-negative integer by microcontroller datasheet
+	- **Valid values**: non-negative integer b(according to a microcontroller datasheet)
 	- **Default value**: 2
 
 
@@ -219,8 +219,7 @@ None
 ## printRadixOn(), printRadixOff(), printRadixToggle()
 #### Description
 The particular method performs corresponding manipulation with radix segment (usually 8th one) of particular glyph without influence on its glyph segments (first 7 segments) in the screen buffer.
-- Each method is overloaded. If there is no input parameter provided, the method performs apropriate action on all controlled digital tubes.
-- Default grid is suitable for 4-digit displays aimed for digital clocks with colon instead of decimal point of second (number 1) digit.
+- Each method is overloaded. If there is no input parameter provided, the method performs appropriate action on all controlled digital tubes.
 
 #### Syntax
 	void printRadixOn(uint8_t digit);
@@ -282,7 +281,7 @@ None
 ## printDigitOn(), printDigitOff()
 #### Description
 The particular method performs corresponding manipulation turning on or off with all glyph segments at once of the display without changing glyph radix segments.
-- Each method is overloaded. If there is no input parameter provided, the method performs apropriate action on all controlled digital tubes.
+- Each method is overloaded. If there is no input parameter provided, the method performs appropriate action on all controlled digital tubes.
 
 #### Syntax
 	void printDigitOn(uint8_t digit);
@@ -341,7 +340,7 @@ None
 #### Description
 The method prints text starting from provided or default position on digital tubes without impact on radixes.
 - The method clears digits right before printing leaving radixes intact.
-- The method is suitable for displaying data, where radixes independent of them and are used for another purpose.
+- The method is suitable for displaying data, where radixes are independent of them and are used for another purpose.
 - It is a wrapper method for subsequent calling methods [printDigitOff()](#printDigitOff), [placePrint()](#placePrint), and system method *print()*.
 
 #### Syntax
@@ -396,7 +395,7 @@ None
 The library inherits the system *Print* class, so that all regular print functions can be used.
 - Actually all print functions eventually call one of listed write methods, so that all of them should be implemented.
 - If some character (ASCII) code is not present in the font table, i.e., it is unknown for the library, that character is ignored and not displayed.
-- If unknown character has ASCII code of *comma*, *dot*, or *colon*, the library turns on the radix segments of the recently displayed digit (lastly manipulated grid). Thus, the decimal points or colon can be present in displayed string at proper position and does not need to be control separately.
+- If unknown character has ASCII code of *comma*, *dot*, or *colon*, the library turns on the radix segments of the recently displayed digit. Thus, the decimal points or colon can be present in displayed string at proper position and does not need to be control separately.
 
 #### Syntax
 	size_t write(uint8_t ascii);
@@ -437,7 +436,7 @@ None
 <a id="initLastResult"></a>
 ## initLastResult()
 #### Description
-The method sets internal status of recent processing of a controller code to success with value of macro [gbj\_tm1637::SUCCESS](#constants). It is usually called right before any operation with the controller in order to reset the internal status.
+The method sets internal status of recent processing of a controller code to success with value of constant [gbj\_tm1637::SUCCESS](#constants). It is usually called right before any operation with the controller in order to reset the internal status.
 
 #### Syntax
     void initLastResult();
@@ -466,7 +465,7 @@ The method sets the internal status of recent processing with controller to inpu
 
 #### Parameters
 - **lastResult**: Desired result code that should be set as a last result code.
-  - *Valid values*: One of macro for [result codes](#constants).
+  - *Valid values*: Some of [result or error codes](#constants).
   - *Default value*: [gbj\_tm1367::SUCCESS](#constants)
 
 #### Returns
@@ -488,7 +487,7 @@ The method sets the level of the display contrast.
 - The brightness is technically implemented with <abbr title="Pulse Width Modulation">PWM</abbr> of segments power supply.
 
 #### Syntax
-	uint8_t setContrastControl(uint8_t contrast);
+	uint8_t setContrast(uint8_t contrast);
 
 #### Parameters
 - **contrast**: Level of contrast/brightness.
@@ -518,7 +517,7 @@ The method gathers font parameters for printing characters on 7-segment displays
 
 
 - **fontTableSize**: The number of bytes that should be utilized from the font table.
-	- Because the font table is referenced by a pointer and not as an array, the table size cannot be calculated internally, but has to be defined externally usually by the function ```sizeof```.
+	- Because the font table is referenced by a pointer and not as an array, the table size cannot be calculated internally, but has to be defined externally usually by the function `sizeof`.
 	- The table size in conjunction with font character pair of bytes determines the number of characters used for printing.
 	- The size can be smaller than the real size of the table, however, the size should be a multiple of 2.
 		- *Valid values*: 0 ~  255 (maximal 127 different characters)
@@ -556,7 +555,7 @@ The method returns a result code of the recent operation with controller. It is 
 None
 
 #### Returns
-Current result code. It is one of expected [result codes](#constants).
+Current result code. It is some of expected [result or error codes](#constants).
 
 #### See also
 [setLastResult()](#setLastResult)
@@ -711,7 +710,7 @@ Flag about successful recent processing.
 <a id="isError"></a>
 ## isError()
 #### Description
-The method returns a flag whether the recent operation with controller failed. The corresponding error code can be obtained by the method [getLastResult()]((#getLastResult), which one of the error macro [constants](#constants).
+The method returns a flag whether the recent operation with controller failed. The corresponding error code can be obtained by the method [getLastResult()]((#getLastResult), which is one of the error [constants](#constants).
 
 #### Syntax
     bool isError();
