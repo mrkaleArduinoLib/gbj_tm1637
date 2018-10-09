@@ -43,6 +43,7 @@ All constants are embedded into the class as static ones including result and er
 
 - **gbj\_tm1637::VERSION**: Name and semantic version of the library.
 - **gbj\_tm1637::SUCCESS**: Result code for successful processing.
+
 ### Errors
 - **gbj\_tm1637::ERROR\_PINS**: Error code for incorrectly assigned microcontroller's pins to controller's pins, usually some of them are duplicated.
 - **gbj\_tm1637::ERROR\_ACK**: Error code for not acknowledged transmission by the controller.
@@ -76,10 +77,10 @@ It is possible to use functions from the parent library [Print](#dependency), wh
 - [write()](#write)
 
 #### Setters
-- [initLastResult()](#initLastResult)
 - [setLastResult()](#setLastResult)
 - [**setContrast()**](#setContrast)
 - [setFont()](#setFont)
+- [initLastResult()](#initLastResult)
 
 #### Getters
 - [getLastResult()](#getLastResult)
@@ -578,9 +579,6 @@ None
 
 #### Returns
 Recently used command code.
-
-#### See also
-[Error codes](#constants)
 
 [Back to interface](#interface)
 

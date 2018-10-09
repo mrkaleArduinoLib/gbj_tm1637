@@ -60,6 +60,7 @@ enum ResultCodes
   ERROR_ACK = 254, // Error at acknowledging a command
 };
 
+
 //------------------------------------------------------------------------------
 // Public methods
 //------------------------------------------------------------------------------
@@ -460,7 +461,7 @@ struct Bitmap
 struct
 {
   uint8_t lastResult; // Result of a recent operation
-  uint8_t lastCommand;  // Command code recently sent to two-wire bus
+  uint8_t lastCommand;  // Command code recently sent to controller
   uint8_t pinClk; // Number of serial clock pin
   uint8_t pinDio; // Number of data input/output pin
   uint8_t digits; // Amount of controlled digital tubes
