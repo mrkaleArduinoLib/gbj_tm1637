@@ -128,7 +128,7 @@ The library instance object for display geometry.
 <a id="begin"></a>
 ## begin()
 #### Description
-The method sets the microcontroller's pins dedicated for the controller and preforms initial sequence recommended by the data sheet for the controller.
+The method checks the microcontroller's pins defined in the [constructor](gbj_tm1637) and preforms initial sequence recommended by the data sheet for the controller.
 - The method clears the display and sets it to the normal operating mode.
 - The method checks whether pins set by constructor are not equal.
 
