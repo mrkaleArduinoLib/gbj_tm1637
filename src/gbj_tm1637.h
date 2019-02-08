@@ -65,7 +65,7 @@ enum ResultCodes
 // Public methods
 //------------------------------------------------------------------------------
 /*
-  Initialize display geometry
+  Initialize display geometry.
 
   DESCRIPTION:
   The constructor methodsanitizes and stores physical features of the display
@@ -95,7 +95,7 @@ gbj_tm1637(uint8_t pinClk = 2, uint8_t pinDio = 3, uint8_t digits = 4);
 
 
 /*
-  Initialize display
+  Initialize display.
 
   DESCRIPTION:
   The method sets the microcontroller's pins dedicated for the driver and perfoms
@@ -112,7 +112,7 @@ uint8_t begin();
 
 
 /*
-  Transmit screen buffer to driver
+  Transmit screen buffer to driver.
 
   DESCRIPTION:
   The method transmits current content of the screen buffer to the driver, so that
@@ -128,7 +128,7 @@ uint8_t display();
 
 
 /*
-  Turn display off or on
+  Turn display off or on.
 
   DESCRIPTION:
   Particular method either turns on or off the entired display module without
@@ -145,7 +145,7 @@ uint8_t displayOff();
 
 
 /*
-  Clear entire digital tubes including radixes and set printing position
+  Clear entire digital tubes including radixes and set printing position.
 
   DESCRIPTION:
   The method turns off all segments including for radixes of all digital tubes
@@ -164,7 +164,7 @@ inline void displayClear(uint8_t digit = 0) { printDigitOff(); printRadixOff(); 
 
 
 /*
-  Manipulate digital tubes' radixes of a display module
+  Manipulate digital tubes' radixes of a display module.
 
   DESCRIPTION:
   The particular method performs corresponding manipulation with radix segment
@@ -180,16 +180,16 @@ inline void displayClear(uint8_t digit = 0) { printDigitOff(); printRadixOff(); 
 
   RETURN: none
 */
-inline void printRadixOn(uint8_t digit) { if (digit < _status.digits) _print.buffer[addrGrid(digit)] |= 0x80; }
+inline void printRadixOn(uint8_t digit) { if (digit < _status.digits) _print.buffer[digit] |= 0x80; }
 inline void printRadixOn() { for (uint8_t digit = 0; digit < _status.digits; digit++) printRadixOn(digit); }
-inline void printRadixOff(uint8_t digit) { if (digit < _status.digits) _print.buffer[addrGrid(digit)] &= ~0x80; }
+inline void printRadixOff(uint8_t digit) { if (digit < _status.digits) _print.buffer[digit] &= ~0x80; }
 inline void printRadixOff() { for (uint8_t digit = 0; digit < _status.digits; digit++) printRadixOff(digit); }
-inline void printRadixToggle(uint8_t digit) { if (digit < _status.digits) _print.buffer[addrGrid(digit)] ^= 0x80; }
+inline void printRadixToggle(uint8_t digit) { if (digit < _status.digits) _print.buffer[digit] ^= 0x80; }
 inline void printRadixToggle() { for (uint8_t digit = 0; digit < _status.digits; digit++) printRadixToggle(digit); }
 
 
 /*
-  Manipulate digit segments
+  Manipulate digit segments.
 
   DESCRIPTION:
   The particular method sets glyph segments (first 7 ones) of particular digit
@@ -221,7 +221,7 @@ inline void printDigitOff() { printDigit(0x00); }
 
 
 /*
-  Set printing position within digital tubes
+  Set printing position within digital tubes.
 
   DESCRIPTION:
   The method stores desired position of a digital tube where the subsequent
@@ -239,7 +239,7 @@ inline void placePrint(uint8_t digit = 0) { if (digit < _status.digits) _print.d
 
 
 /*
-  Print text at desired printing position
+  Print text at desired printing position.
 
   DESCRIPTION:
   The method prints text starting from provided or default position on digital tubes.
@@ -263,7 +263,7 @@ inline void printText(String text, uint8_t digit = 0) { displayClear(digit); pri
 
 
 /*
-  Print text at desired printing position without impact on radixes
+  Print text at desired printing position without impact on radixes.
 
   DESCRIPTION:
   The method prints text starting from provided or default position on digital
@@ -288,7 +288,7 @@ inline void printGlyphs(String text, uint8_t digit = 0) { printDigitOff(); place
 
 
 /*
-  Print class inheritance
+  Print class inheritance.
 
   DESCRIPTION:
   The library inherits the system Print class, so that all regular print
@@ -340,7 +340,7 @@ inline uint8_t setLastResult(uint8_t lastResult = SUCCESS) { return _status.last
 
 
 /*
-  Set contrast of the digital tubes
+  Set contrast of the digital tubes.
 
   DESCRIPTION:
   The method set constrast level of all digital tubes and simultaniously
@@ -358,7 +358,7 @@ uint8_t setContrast(uint8_t contrast = 3);
 
 
 /*
-  Define font parameters for printing
+  Define font parameters for printing.
 
   DESCRIPTION:
   The method gathers font parameters for printing characters on 7-segment displays.
@@ -420,11 +420,11 @@ enum Commands
   CMD_DATA_NORMAL = 0b0000, // 0x00, Normal mode
   CMD_DATA_TEST   = 0b1000, // 0x08, Test mode
   // Address command setting (0xC0)
-  CMD_ADDR_INIT = 0b11000000, // 0xC0, Address set, ORed by display address 0x00 ~ 0x05 in lower nibble
+  CMD_ADDR_INIT = 0b11000000, // 0xC0, Address set, OR-ed by display address 0x00 ~ 0x05 in lower nibble
   // Display control (0x80)
-  CMD_DISP_INIT = 0b10000000, // 0x80, Display control, ORed by proper next ones
+  CMD_DISP_INIT = 0b10000000, // 0x80, Display control, OR-ed by proper next ones
   CMD_DISP_OFF  = 0b0000, // 0x00, Display is off
-  CMD_DISP_ON   = 0b1000, // 0x08, Display is on, ORed by contrast 0x00 ~ 0x07 in lower 3 bits
+  CMD_DISP_ON   = 0b1000, // 0x08, Display is on, OR-ed by contrast 0x00 ~ 0x07 in lower 3 bits
 };
 enum Geometry // Controller TM1637
 {
@@ -473,7 +473,6 @@ struct
 // Private methods
 //------------------------------------------------------------------------------
 inline void swapByte(uint8_t a, uint8_t b) { if (a > b) {uint8_t t = a; a = b; b = t;} };
-inline uint8_t addrGrid(uint8_t digit) { return digit; }
 inline uint8_t setLastCommand(uint8_t lastCommand) { return _status.lastCommand = lastCommand; };
 void waitPulseClk();  // Delay for clock pulse duration
 void beginTransmission(); // Start condition

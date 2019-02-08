@@ -81,7 +81,7 @@ uint8_t gbj_tm1637::display()
 {
   // Automatic addressing
   if (busSend(CMD_DATA_INIT | CMD_DATA_NORMAL | CMD_DATA_WRITE | CMD_DATA_AUTO)) return getLastResult();
-  if (busSend(CMD_ADDR_INIT, _print.buffer, sizeof(_print.buffer) / sizeof(_print.buffer[0]))) return getLastResult();
+  if (busSend(CMD_ADDR_INIT, _print.buffer, _status.digits)) return getLastResult();
   return getLastResult();
 }
 
@@ -125,12 +125,12 @@ void gbj_tm1637::waitPulseClk()
 }
 
 
-// Start condition - pull dow DIO from HIGH to LOW while CLK is HIGH
+// Start condition - pull down DIO from HIGH to LOW while CLK is HIGH
 void gbj_tm1637::beginTransmission()
 {
+  digitalWrite(_status.pinClk, LOW);
   digitalWrite(_status.pinDio, HIGH);
   digitalWrite(_status.pinClk, HIGH);
-  waitPulseClk();
   digitalWrite(_status.pinDio, LOW);
 }
 
@@ -139,11 +139,8 @@ void gbj_tm1637::beginTransmission()
 void gbj_tm1637::endTransmission()
 {
   digitalWrite(_status.pinClk, LOW);
-  waitPulseClk();
   digitalWrite(_status.pinDio, LOW);
-  waitPulseClk();
   digitalWrite(_status.pinClk, HIGH);
-  waitPulseClk();
   digitalWrite(_status.pinDio, HIGH);
 }
 
@@ -152,13 +149,8 @@ void gbj_tm1637::endTransmission()
 uint8_t gbj_tm1637::ackTransmission()
 {
   initLastResult();
-  digitalWrite(_status.pinClk, LOW);
-  digitalWrite(_status.pinDio, HIGH);
   pinMode(_status.pinDio, INPUT_PULLUP);
-  waitPulseClk();
   digitalWrite(_status.pinClk, HIGH);
-  waitPulseClk();
-  digitalWrite(_status.pinDio, HIGH);
   // Wait for acknowledge
   uint32_t tsStart = micros();
   while (digitalRead(_status.pinDio))
@@ -169,8 +161,9 @@ uint8_t gbj_tm1637::ackTransmission()
       break;
     }
   }
-  pinMode(_status.pinDio, OUTPUT);
+  digitalWrite(_status.pinClk, LOW);
   digitalWrite(_status.pinDio, LOW);
+  pinMode(_status.pinDio, OUTPUT);
   return getLastResult();
 }
 
@@ -239,8 +232,8 @@ void gbj_tm1637::gridWrite(uint8_t segmentMask, uint8_t gridStart, uint8_t gridS
   for (_print.digit = gridStart; _print.digit <= gridStop; _print.digit++)
   {
     segmentMask &= 0x7F; // Clear radix bit in segment mask
-    _print.buffer[addrGrid(_print.digit)] &= 0x80;  // Clear digit bits in screen buffer
-    _print.buffer[addrGrid(_print.digit)] |= segmentMask;  // Set digit bits but leave radix bit intact
+    _print.buffer[_print.digit] &= 0x80;  // Clear digit bits in screen buffer
+    _print.buffer[_print.digit] |= segmentMask;  // Set digit bits but leave radix bit intact
   }
 }
 
