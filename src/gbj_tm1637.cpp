@@ -19,9 +19,7 @@ uint8_t gbj_tm1637::begin()
   pinMode(_status.pinClk, OUTPUT);
   pinMode(_status.pinDio, OUTPUT);
   // Initialize controller
-  displayClear();
-  if (setContrast()) return getLastResult();
-  return display();
+  return setContrast();
 }
 
 
