@@ -211,9 +211,6 @@ public:
     DESCRIPTION:
     The method sets glyph segments (first 7 ones) of particular digit
     (digital tube) without influence on its radix segment in the screen buffer.
-    - The method is overloaded for number of input parameters.
-    - In case of one parameter, the segment mask is displayed on a digital
-      tube position internally set for subsequent printing.
 
     PARAMETERS:
     segmentMask - Bit mask defining what segments should be turned on. Segments
@@ -221,23 +218,45 @@ public:
       from least significant bit. The 7th bit relates to radix segment and
       therefore it is ignored.
       - Data type: non-negative integer
-      - Default value: none
+      - Default value: 0b01111111 (all segments turned on)
       - Limited range: 0 ~ 127
 
     digit - Driver's digit (digital tube) number counting from 0, which glyph
       segments should be manipulated.
       - Data type: non-negative integer
-      - Default value: none
+      - Default value: 0
       - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
 
     RETURN: none
   */
-  inline void printDigit(uint8_t segmentMask, uint8_t digit)
+  inline void printDigit(uint8_t segmentMask = 0b01111111, uint8_t digit = 0)
   {
     if (digit < _status.digits)
       gridWrite(segmentMask, digit, digit);
   }
-  inline void printDigit(uint8_t segmentMask) { gridWrite(segmentMask); }
+
+  /*
+    Fill display with digit segments for each digital tube.
+
+    DESCRIPTION:
+    The method sets glyph segments (first 7 ones) of all digits
+    (digital tubes) without influence on its radix segment in the screen buffer.
+
+    PARAMETERS:
+    segmentMask - Bit mask defining what segments should be turned on. Segments
+      are marked starting from A to G and relate to mask bits 0 to 6 counting
+      from least significant bit. The 7th bit relates to radix segment and
+      therefore it is ignored.
+      - Data type: non-negative integer
+      - Default value: 0b01111111 (all segments turned on)
+      - Limited range: 0 ~ 127
+
+    RETURN: none
+  */
+  inline void printDigitAll(uint8_t segmentMask = 0b01111111)
+  {
+    gridWrite(segmentMask);
+  }
 
   /*
     Switching digit tubes.
@@ -262,9 +281,9 @@ public:
     RETURN: none
   */
   inline void printDigitOn(uint8_t digit) { printDigit(0x7F, digit); }
-  inline void printDigitOn() { printDigit(0x7F); }
+  inline void printDigitOn() { printDigitAll(0x7F); }
   inline void printDigitOff(uint8_t digit) { printDigit(0x00, digit); }
-  inline void printDigitOff() { printDigit(0x00); }
+  inline void printDigitOff() { printDigitAll(0x00); }
 
   /*
     Set printing position within digital tubes.

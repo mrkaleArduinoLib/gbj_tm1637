@@ -38,7 +38,7 @@ size_t gbj_tm1637::write(uint8_t ascii)
   }
   else
   {
-    printDigit(_print.digit, mask);
+    printDigit(mask, _print.digit);
     return 1;
   }
 }

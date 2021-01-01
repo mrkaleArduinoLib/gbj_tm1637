@@ -74,7 +74,7 @@ void loop()
     // Display segments one by one of a digit
     for (unsigned char segment = 0; segment < 7; segment++)
     {
-      disp.printDigit(digit, 0x01 << segment);
+      disp.printDigit(0x01 << segment, digit);
       displayTest();
     }
     // Display all segments of a digit

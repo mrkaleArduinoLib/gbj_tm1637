@@ -78,6 +78,7 @@ It is possible to use functions from the parent library [Print](#dependency), wh
 - [displayClear()](#displayClear)
 - [placePrint()](#placePrint)
 - [printDigit()](#printDigit)
+- [printDigitAll()](#printDigitAll)
 - [printDigitOff()](#printDigitSwitch)
 - [printDigitOn()](#printDigitSwitch)
 - [printGlyphs()](#printGlyphs)
@@ -272,32 +273,55 @@ None
 
 <a id="printDigit"></a>
 ## printDigit()
+
 #### Description
 The method sets glyph segments (first 7 ones) of particular digital tube without influence on its radix segment in the screen buffer.
-- The method is overloaded. In case of one parameter, the segment mask is displayed on a digital tube position internally set for subsequent printing.
-- The method is useful for writing to the display without any font used.
 
 #### Syntax
 	void printDigit(uint8_t segmentMask, uint8_t digit)
-	void printDigit(uint8_t segmentMask)
 
 #### Parameters
-- **segmentMask**: Bit mask defining what segments should be turned on. Segments starting from A to G relate to mask bits 0 to 6 counting from the least significant bit. The 7th bit relates to radix segment and therefore it is ignored.
+- **segmentMask**: Bit mask defining what segments should be turned on. Segments starting from A to G relate to mask bits 0 to 6 counting from the least significant bit. The 7th bit relates to radix segment and therefore it is ignored. By default the method turns on all segments and displays number 8.
 	- *Valid values*: 0 ~ 127
-	- *Default value*: none
+	- *Default value*: 0b01111111 (0x7F, 127 - all segments turned on)
 
 
 - **digit**: controller's digital tube number counting from 0, which glyph segments should be manipulated.
 	- *Valid values*: 0 ~ [digits - 1](#prm_digits) (from constructor)
-	- *Default value*: none
+	- *Default value*: 0
 
 #### Returns
 None
 
 #### See also
+[printDigitAll()](#printDigitAll)
+
 [printDigitOn()](#printDigitSwitch)
 
 [printDigitOff()](#printDigitSwitch)
+
+[Back to interface](#interface)
+
+
+<a id="printDigitAll"></a>
+## printDigitAll()
+
+#### Description
+The method sets glyph segments (first 7 ones) of all digital tubes without influence on its radix segment in the screen buffer, so that it fills a display with provided segment mask.
+
+#### Syntax
+	void printDigitAll(uint8_t segmentMask)
+
+#### Parameters
+- **segmentMask**: Bit mask defining what segments should be turned on. Segments starting from A to G relate to mask bits 0 to 6 counting from the least significant bit. The 7th bit relates to radix segment and therefore it is ignored. By default the method turns on all segments and displays number 8.
+	- *Valid values*: 0 ~ 127
+	- *Default value*: 0b01111111 (0x7F, 127 - all segments turned on)
+
+#### Returns
+None
+
+#### See also
+[printDigit()](#printDigit)
 
 [Back to interface](#interface)
 

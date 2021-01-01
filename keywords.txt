@@ -27,6 +27,7 @@ isSuccess	KEYWORD2
 moduleClear	KEYWORD2
 placePrint	KEYWORD2
 printDigit	KEYWORD2
+printDigitAll	KEYWORD2
 printDigitOff	KEYWORD2
 printDigitOn	KEYWORD2
 printGlyphs	KEYWORD2
