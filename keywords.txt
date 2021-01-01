@@ -22,7 +22,6 @@ getDigitsMax	KEYWORD2
 getLastCommand	KEYWORD2
 getLastResult	KEYWORD2
 getPrint	KEYWORD2
-initLastResult	KEYWORD2
 isError	KEYWORD2
 isSuccess	KEYWORD2
 moduleClear	KEYWORD2
@@ -30,11 +29,11 @@ placePrint	KEYWORD2
 printDigit	KEYWORD2
 printDigitOff	KEYWORD2
 printDigitOn	KEYWORD2
+printGlyphs	KEYWORD2
 printRadixOff	KEYWORD2
 printRadixOn	KEYWORD2
 printRadixToggle	KEYWORD2
 printText	KEYWORD2
-printGlyphs	KEYWORD2
 setContrast	KEYWORD2
 setFont	KEYWORD2
 setLastResult	KEYWORD2
@@ -43,3 +42,7 @@ write	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+ERROR_ACK	LITERAL1
+ERROR_PINS	LITERAL1
+SUCCESS	LITERAL1
+VERSION	LITERAL1

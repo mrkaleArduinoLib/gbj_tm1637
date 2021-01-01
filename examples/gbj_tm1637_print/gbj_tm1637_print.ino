@@ -1,9 +1,10 @@
 /*
   NAME:
-  Demonstration of text printing with the library gbj_tm1637
+  Demonstration of text printing with the library gbj_tm1637.
 
   DESCRIPTION:
-  The sketch prints some informative texts on the display and uptime for 2 minutes.
+  The sketch prints some informative texts on the display and uptime for 2
+  minutes.
   - Connect controller's pins to Arduino's pins as follows:
     - TM1637 pin CLK to Arduino pin D2
     - TM1637 pin DIO to Arduino pin D3
@@ -19,37 +20,38 @@
   CREDENTIALS:
   Author: Libor Gabaj
 */
-#include "gbj_tm1637.h"
 #include "../extras/font7seg_basic.h"
+#include "gbj_tm1637.h"
+
 #define SKETCH "GBJ_TM1637_PRINT 1.0.0"
 
-const unsigned int PERIOD_TEST = 2000;  // Time in miliseconds between tests
-const unsigned int PERIOD_VALUE = 200; // Time delay in miliseconds for displaying a value
+const unsigned int PERIOD_TEST = 2000; // Time in miliseconds between tests
+const unsigned int PERIOD_VALUE =
+  200; // Time delay in miliseconds for displaying a value
 const unsigned char PIN_TM1637_CLK = 2;
 const unsigned char PIN_TM1637_DIO = 3;
 const unsigned char TM1637_DIGITS = 4;
 const unsigned char TM1637_COLON = 1;
 const unsigned int TEST_SECONDS = 120; // Countdown starting testing seconds
 
-gbj_tm1637 Sled = gbj_tm1637(PIN_TM1637_CLK, PIN_TM1637_DIO, TM1637_DIGITS);
+gbj_tm1637 disp = gbj_tm1637(PIN_TM1637_CLK, PIN_TM1637_DIO, TM1637_DIGITS);
 char textBuffer[TM1637_DIGITS + 1];
-
 
 void errorHandler()
 {
-  if (Sled.isSuccess()) return;
+  if (disp.isSuccess())
+    return;
   Serial.print("Error: ");
-  Serial.println(Sled.getLastResult());
-  Serial.println(Sled.getLastCommand());
+  Serial.println(disp.getLastResult());
+  Serial.println(disp.getLastCommand());
 }
-
 
 void displayTest()
 {
-  if (Sled.display()) errorHandler();
+  if (disp.display())
+    errorHandler();
   delay(PERIOD_TEST);
 }
-
 
 void setup()
 {
@@ -61,38 +63,38 @@ void setup()
   Serial.println(GBJ_FONT7SEG_VERSION);
   Serial.println("---");
   // Initialize controller
-  Sled.begin();
-  if (Sled.isError())
+  disp.begin();
+  if (disp.isError())
   {
     errorHandler();
     return;
   }
 
-  Sled.setFont(gbjFont7segTable, sizeof(gbjFont7segTable));
-  if (Sled.isError())
+  disp.setFont(gbjFont7segTable, sizeof(gbjFont7segTable));
+  if (disp.isError())
   {
     errorHandler();
     return;
   }
 }
 
-
 void loop()
 {
-  if (Sled.isError()) return;
-  Sled.printText("Init");
+  if (disp.isError())
+    return;
+  disp.printText("Init");
   displayTest();
   for (int i = TEST_SECONDS; i >= 0; i--)
   {
     unsigned char minute = i / 60;
     unsigned char second = i % 60;
     sprintf(textBuffer, "%02u%02u", minute, second);
-    Sled.printText(textBuffer);
-    Sled.printRadixToggle(TM1637_COLON);
-    Sled.display();
+    disp.printText(textBuffer);
+    disp.printRadixToggle(TM1637_COLON);
+    disp.display();
     delay(PERIOD_VALUE);
   }
-  Sled.printRadixOff();
-  Sled.printText("End", 1);
+  disp.printRadixOff();
+  disp.printText("End", 1);
   displayTest();
 }

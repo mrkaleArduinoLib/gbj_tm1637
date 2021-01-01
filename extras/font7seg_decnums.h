@@ -4,7 +4,7 @@
 
 #if defined(__AVR__)
 	#include <avr/pgmspace.h>
-#elif defined(ESP8266)
+#elif defined(ESP8266) || defined(ESP32)
   #include <pgmspace.h>
 #endif
 

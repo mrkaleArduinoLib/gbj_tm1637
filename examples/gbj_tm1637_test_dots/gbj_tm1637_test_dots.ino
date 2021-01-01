@@ -1,6 +1,7 @@
 /*
   NAME:
-  Decimal dots/colon functionality test for TM1637 controller and 7-segment displays
+  Decimal dots/colon functionality test for TM1637 controller and 7-segment
+  displays.
 
   DESCRIPTION:
   The sketch tests all radix segments of a display by displaying them one by one
@@ -23,31 +24,32 @@
   Author: Libor Gabaj
 */
 #include "gbj_tm1637.h"
+
 #define SKETCH "GBJ_TM1637_TEST_DOTS 1.0.0"
 
-const unsigned int PERIOD_TEST = 2000;  // Time in miliseconds between tests
-const unsigned int PERIOD_PATTERN = 500; // Time delay in miliseconds for displaying a pattern
+const unsigned int PERIOD_TEST = 2000; // Time in miliseconds between tests
+const unsigned int PERIOD_PATTERN =
+  500; // Time delay in miliseconds for displaying a pattern
 const unsigned char PIN_TM1637_CLK = 2;
 const unsigned char PIN_TM1637_DIO = 3;
 const unsigned char TM1637_DIGITS = 4;
 
-gbj_tm1637 Sled = gbj_tm1637(PIN_TM1637_CLK, PIN_TM1637_DIO, TM1637_DIGITS);
-
+gbj_tm1637 disp = gbj_tm1637(PIN_TM1637_CLK, PIN_TM1637_DIO, TM1637_DIGITS);
 
 void errorHandler()
 {
-  if (Sled.isSuccess()) return;
+  if (disp.isSuccess())
+    return;
   Serial.print("Error: ");
-  Serial.println(Sled.getLastResult());
+  Serial.println(disp.getLastResult());
 }
-
 
 void displayTest()
 {
-  if (Sled.display()) errorHandler();
+  if (disp.display())
+    errorHandler();
   delay(PERIOD_PATTERN);
 }
-
 
 void setup()
 {
@@ -57,23 +59,23 @@ void setup()
   Serial.println(gbj_tm1637::VERSION);
   Serial.println("---");
   // Initialize controller
-  if (Sled.begin())
+  if (disp.begin())
   {
     errorHandler();
     return;
   }
 }
 
-
 void loop()
 {
-  if (Sled.isError()) return;
-  Sled.displayClear();
+  if (disp.isError())
+    return;
+  disp.displayClear();
   // Test all digits one by one
-  for (unsigned char digit = 0; digit < Sled.getDigits(); digit++)
+  for (unsigned char digit = 0; digit < disp.getDigits(); digit++)
   {
-    Sled.printDigitOn(digit);
-    Sled.printRadixOn(digit);
+    disp.printDigitOn(digit);
+    disp.printRadixOn(digit);
     displayTest();
   }
   delay(PERIOD_TEST);

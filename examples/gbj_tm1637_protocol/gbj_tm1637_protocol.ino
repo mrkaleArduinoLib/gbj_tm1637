@@ -1,6 +1,6 @@
 /*
   NAME:
-  Typical communication with TM1637 display driverfor a protocol decoder.
+  Typical communication with TM1637 display driver for a protocol decoder.
 
   DESCRIPTION:
   The sketch executes communication with the driver chip in order to expose
@@ -21,26 +21,26 @@
   CREDENTIALS:
   Author: Libor Gabaj
 */
-#include "gbj_tm1637.h"
 #include "../extras/font7seg_basic.h"
+#include "gbj_tm1637.h"
+
 #define SKETCH "GBJ_TM1637_PROTOCOL 1.0.0"
 
 const unsigned char PIN_TM1637_CLK = 2;
 const unsigned char PIN_TM1637_DIO = 3;
 const unsigned char TM1637_DIGITS = 4;
 
-gbj_tm1637 Sled = gbj_tm1637(PIN_TM1637_CLK, PIN_TM1637_DIO, TM1637_DIGITS);
+gbj_tm1637 disp = gbj_tm1637(PIN_TM1637_CLK, PIN_TM1637_DIO, TM1637_DIGITS);
 char textBuffer[TM1637_DIGITS + 1];
-
 
 void errorHandler()
 {
-  if (Sled.isSuccess()) return;
+  if (disp.isSuccess())
+    return;
   Serial.print("Error: ");
-  Serial.println(Sled.getLastResult());
-  Serial.println(Sled.getLastCommand());
+  Serial.println(disp.getLastResult());
+  Serial.println(disp.getLastCommand());
 }
-
 
 void setup()
 {
@@ -52,26 +52,25 @@ void setup()
   Serial.println(GBJ_FONT7SEG_VERSION);
   Serial.println("---");
   // Initialize controller
-  Sled.begin();
-  if (Sled.isError())
+  disp.begin();
+  if (disp.isError())
   {
     errorHandler();
     return;
   }
 
-  Sled.setFont(gbjFont7segTable, sizeof(gbjFont7segTable));
-  if (Sled.isError())
+  disp.setFont(gbjFont7segTable, sizeof(gbjFont7segTable));
+  if (disp.isError())
   {
     errorHandler();
     return;
   }
-  Sled.printText("Init");
-  Sled.display();
-  Sled.printText("1.234");
-  Sled.display();
-  Sled.printText("14:32");
-  Sled.display();
+  disp.printText("Init");
+  disp.display();
+  disp.printText("1.234");
+  disp.display();
+  disp.printText("14:32");
+  disp.display();
 }
-
 
 void loop() {}
