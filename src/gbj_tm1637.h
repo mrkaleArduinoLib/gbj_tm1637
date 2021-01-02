@@ -109,15 +109,25 @@ public:
     Transmit screen buffer to driver.
 
     DESCRIPTION:
-    The method transmits current content of the screen buffer to the driver, so that
-    its content is displayed immediatelly and stays unchanged until another transmission.
+    The method transmits current content of the screen buffer to the driver
+    after potential digit order transformation, so that its content is displayed
+    immediatelly and stays unchanged until another transmission.
     - The method utilizes automatic addressing mode of the driver.
+    - The input transformation table transforms screen buffer digit order to the
+      display hardware digit order. E.g., some 6-digit displays have usually
+      2 banks of 3-digit digital tubes with hardware order {2, 1, 0, 5, 4, 3},
+      while the screen buffer is ordered as {0, 1, 2, 3, 4, 5}.
 
-    PARAMETERS: none
+    PARAMETERS:
+    digitReorder - Array with transformation table where an index defines the
+      screen buffer position and a value defines the display digital tube position.
+      - Data type: pointer to a non-negative byte array
+      - Default value: 0
+      - Limited range: microcontroller's addressing range
 
     RETURN: Result code.
   */
-  ResultCodes display();
+  ResultCodes display(uint8_t *digitReorder = 0);
 
   /*
     Turn display off or on.
@@ -578,7 +588,8 @@ private:
   ResultCodes busSend(
     uint8_t command,
     uint8_t *buffer,
-    uint8_t bufferBytes); // Send data at auto-increment addressing
+    uint8_t bufferBytes,
+    uint8_t *transform = 0); // Send data at auto-increment addressing
   uint8_t getFontMask(
     uint8_t ascii); // Lookup font mask in font table by ASCII code
 };

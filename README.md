@@ -167,17 +167,34 @@ Result code from [Result and error codes](#results).
 ## display()
 
 #### Description
-The method transmits current content of the screen buffer to the controller, so that its content is displayed immediately and stays unchanged until another transmission.
-- The method utilizes automatic addressing mode of the controller.
+The method transmits current content of the screen buffer to the driver after potential digit order transformation, so that its content is displayed immediatelly and stays unchanged until another transmission.
+- The method utilizes automatic addressing mode of the driver.
+- The input transformation table transforms screen buffer digit order to the display hardware digit order. Some 6-digit displays have usually 2 banks of 3-digit digital tubes with hardware order {2, 1, 0, 5, 4, 3}, while the screen buffer is orderer as {0, 1, 2, 3, 4, 5}.
+- The referenced input array should be as long as there are [digits](#prm_digits) defined in the constructor at least.
 
 #### Syntax
-	gbj_tm1637::ResultCodes display()
+	gbj_tm1637::ResultCodes display(uint8_t *digitReorder)
 
 #### Parameters
-None
+- **digitReorder**: Array with transformation table where an index defines the screen buffer position and a value defines the display digital tube position.
+	- *Valid values*: microcontroller's addressing range
+	- *Default value*: 0
 
 #### Returns
 Result code from [Result and error codes](#results).
+
+#### Example
+``` cpp
+const unsigned char TM1637_DIGITS = 6;
+gbj_tm1637 disp = gbj_tm1637(2, 3, TM1637_DIGITS);
+byte digitReorder[TM1637_DIGITS] = { 2, 1, 0, 5, 4, 3 };
+setup()
+{
+ disp.begin();
+ disp.printText("-Init-");
+ disp.display(digitReorder);
+}
+```
 
 #### See also
 [displayOn()](#displaySwitch)

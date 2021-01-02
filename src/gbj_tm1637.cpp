@@ -66,13 +66,14 @@ size_t gbj_tm1637::write(const uint8_t *buffer, size_t size)
   return digits;
 }
 
-gbj_tm1637::ResultCodes gbj_tm1637::display()
+gbj_tm1637::ResultCodes gbj_tm1637::display(uint8_t *digitReorder)
 {
   // Automatic addressing
   if (busSend(Commands::CMD_DATA_INIT | Commands::CMD_DATA_NORMAL |
               Commands::CMD_DATA_WRITE | Commands::CMD_DATA_AUTO))
     return getLastResult();
-  if (busSend(Commands::CMD_ADDR_INIT, _print.buffer, _status.digits))
+  if (busSend(
+        Commands::CMD_ADDR_INIT, _print.buffer, _status.digits, digitReorder))
     return getLastResult();
   return getLastResult();
 }
@@ -180,7 +181,8 @@ gbj_tm1637::ResultCodes gbj_tm1637::busSend(uint8_t command, uint8_t data)
 
 gbj_tm1637::ResultCodes gbj_tm1637::busSend(uint8_t command,
                                             uint8_t *buffer,
-                                            uint8_t bufferItems)
+                                            uint8_t bufferItems,
+                                            uint8_t *digitReorder)
 {
   beginTransmission();
   // Send one command byte
@@ -193,7 +195,14 @@ gbj_tm1637::ResultCodes gbj_tm1637::busSend(uint8_t command,
   // Send data byte stream
   for (uint8_t bufferIndex = 0; bufferIndex < bufferItems; bufferIndex++)
   {
-    busWrite(*buffer++);
+    if (digitReorder)
+    {
+      busWrite(buffer[digitReorder[bufferIndex]]);
+    }
+    else
+    {
+      busWrite(*buffer++);
+    }
     if (ackTransmission())
       break;
   }
