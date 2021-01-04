@@ -36,6 +36,8 @@ printRadixOn	KEYWORD2
 printRadixToggle	KEYWORD2
 printText	KEYWORD2
 setContrast	KEYWORD2
+setContrastMax	KEYWORD2
+setContrastMin	KEYWORD2
 setFont	KEYWORD2
 setLastResult	KEYWORD2
 write	KEYWORD2

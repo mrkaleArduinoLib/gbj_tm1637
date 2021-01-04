@@ -438,8 +438,8 @@ public:
     Set contrast of the digital tubes.
 
     DESCRIPTION:
-    The method set constrast level of all digital tubes and simultaniously
-    turns display on.
+    The corresponding method sets contrast to respective level of all digital
+    tubes and simultaniously turns display on.
 
     PARAMETERS:
     contrast - Level of constrast/brightness.
@@ -450,6 +450,8 @@ public:
     RETURN: Result code
   */
   ResultCodes setContrast(uint8_t contrast = 3);
+  ResultCodes setContrastMin() { return setContrast(0); };
+  ResultCodes setContrastMax() { return setContrast(7); };
 
   /*
     Define font parameters for printing.

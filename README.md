@@ -93,6 +93,8 @@ It is possible to use functions from the parent library [Print](#dependency), wh
 #### Setters
 
 - [**setContrast()**](#setContrast)
+- [**setContrastMax()**](#setContrast)
+- [**setContrastMin()**](#setContrast)
 - [setFont()](#setFont)
 - [**setLastResult()**](#setLastResult)
 
@@ -506,15 +508,18 @@ None
 
 
 <a id="setContrast"></a>
-## setContrast()
+## setContrast(), setContrastMax(), setContrastMin()
 
 #### Description
-The method sets the level of the display contrast.
+The corresponding method sets the respective level of the display contrast.
 - The contrast is perceived as the brightness of the display.
 - The brightness is technically implemented with <abbr title="Pulse Width Modulation">PWM</abbr> of segments power supply.
+- The methods for extreme contrasts are just for convenience.
 
 #### Syntax
 	gbj_tm1637::ResultCodes setContrast(uint8_t contrast)
+	gbj_tm1637::ResultCodes setContrastMax()
+	gbj_tm1637::ResultCodes setContrastMin()
 
 #### Parameters
 - **contrast**: Level of contrast/brightness.
