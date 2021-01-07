@@ -15,6 +15,7 @@ display	KEYWORD2
 displayClear	KEYWORD2
 displayOff	KEYWORD2
 displayOn	KEYWORD2
+displayToggle	KEYWORD2
 getContrast	KEYWORD2
 getContrastMax	KEYWORD2
 getDigits	KEYWORD2
@@ -22,6 +23,8 @@ getDigitsMax	KEYWORD2
 getLastCommand	KEYWORD2
 getLastResult	KEYWORD2
 getPrint	KEYWORD2
+isDisplayOff	KEYWORD2
+isDisplayOn	KEYWORD2
 isError	KEYWORD2
 isSuccess	KEYWORD2
 moduleClear	KEYWORD2

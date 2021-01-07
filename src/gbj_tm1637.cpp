@@ -1,13 +1,6 @@
 #include "gbj_tm1637.h"
 const String gbj_tm1637::VERSION = "GBJ_TM1637 1.0.0";
 
-gbj_tm1637::gbj_tm1637(uint8_t pinClk, uint8_t pinDio, uint8_t digits)
-{
-  _status.pinClk = pinClk;
-  _status.pinDio = pinDio;
-  _status.digits = min(digits, Geometry::DIGITS);
-}
-
 gbj_tm1637::ResultCodes gbj_tm1637::begin()
 {
   setLastResult();
@@ -80,19 +73,39 @@ gbj_tm1637::ResultCodes gbj_tm1637::display(uint8_t *digitReorder)
 
 gbj_tm1637::ResultCodes gbj_tm1637::displayOn()
 {
-  return setContrast(_status.contrast);
+  if (!busSend(Commands::CMD_DISP_INIT | Commands::CMD_DISP_ON |
+               _status.contrast))
+  {
+    _status.state = true;
+  }
+  return getLastResult();
 }
 
 gbj_tm1637::ResultCodes gbj_tm1637::displayOff()
 {
-  return busSend(Commands::CMD_DISP_INIT | Commands::CMD_DISP_OFF);
+  if (!busSend(Commands::CMD_DISP_INIT | Commands::CMD_DISP_OFF))
+  {
+    _status.state = false;
+  }
+  return getLastResult();
+}
+
+gbj_tm1637::ResultCodes gbj_tm1637::displayToggle()
+{
+  if (_status.state)
+  {
+  return displayOff();
+  }
+  else
+  {
+  return displayOn();
+  }
 }
 
 gbj_tm1637::ResultCodes gbj_tm1637::setContrast(uint8_t contrast)
 {
   _status.contrast = contrast & getContrastMax();
-  return busSend(Commands::CMD_DISP_INIT | Commands::CMD_DISP_ON |
-                 _status.contrast);
+  return displayOn();
 }
 
 void gbj_tm1637::setFont(const uint8_t *fontTable, uint8_t fontTableSize)

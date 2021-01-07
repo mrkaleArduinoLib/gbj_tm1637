@@ -87,8 +87,12 @@ public:
 
     RETURN: object
   */
-  gbj_tm1637(uint8_t pinClk = 2, uint8_t pinDio = 3, uint8_t digits = 4);
-
+  inline gbj_tm1637(uint8_t pinClk = 2, uint8_t pinDio = 3, uint8_t digits = 4)
+  {
+    _status.pinClk = pinClk;
+    _status.pinDio = pinDio;
+    _status.digits = min(digits, Geometry::DIGITS);
+  }
 
   /*
     Initialize display.
@@ -130,12 +134,12 @@ public:
   ResultCodes display(uint8_t *digitReorder = 0);
 
   /*
-    Turn display off or on.
+    Manipulate display off or on.
 
     DESCRIPTION:
-    Corresponding method either turns on or off the entire display module without
-    changing current contrast level.
-    - Both methods are suitable for making a display module blink.
+    Corresponding method either either turns on or off the entire display
+    module or toggles its state without changing current contrast level.
+    - All methods are suitable for making a display module blink.
 
     PARAMETERS: none
 
@@ -143,6 +147,7 @@ public:
   */
   ResultCodes displayOn();
   ResultCodes displayOff();
+  ResultCodes displayToggle();
 
   /*
     Clear entire digital tubes including radixes and set printing position.
@@ -500,6 +505,8 @@ public:
     setLastResult(result);
     return isError();
   }
+  inline bool isDisplayOn() { return _status.state; }
+  inline bool isDisplayOff() { return !isDisplayOn(); }
   inline uint8_t getLastCommand() { return _status.lastCommand; }
   inline uint8_t getDigits() { return _status.digits; } // Current digital tubes for displaying
   inline uint8_t getDigitsMax() { return DIGITS; } // Maximal supported digital tubes
@@ -560,6 +567,7 @@ private:
     uint8_t pinDio; // Number of data input/output pin
     uint8_t digits; // Amount of controlled digital tubes
     uint8_t contrast; // Current contrast level
+    bool state = true; // Current display ON/OFF state
   } _status;  // Microcontroller status features
 
   inline void swapByte(uint8_t a, uint8_t b)
