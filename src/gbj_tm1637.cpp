@@ -94,11 +94,11 @@ gbj_tm1637::ResultCodes gbj_tm1637::displayToggle()
 {
   if (_status.state)
   {
-  return displayOff();
+    return displayOff();
   }
   else
   {
-  return displayOn();
+    return displayOn();
   }
 }
 
@@ -229,7 +229,7 @@ void gbj_tm1637::gridWrite(uint8_t segmentMask,
                            uint8_t gridStop)
 {
   swapByte(gridStart, gridStop);
-  gridStop = min(gridStop, _status.digits - 1);
+  gridStop = min(gridStop, (uint8_t)(_status.digits - 1));
   for (_print.digit = gridStart; _print.digit <= gridStop; _print.digit++)
   {
     segmentMask &= 0x7F; // Clear radix bit in segment mask
