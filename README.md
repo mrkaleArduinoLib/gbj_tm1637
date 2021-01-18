@@ -2,6 +2,7 @@
 # gbj_tm1637
 Library for utilizing display modules with TM1637 controller. Those modules are available in variants with colon (clock displays) only after the second digit or with decimal point after every digit, usually with 4 digits, although the controller can drive up to 6 digits.
 The library controls the controller as with cache in screen buffer in the microcontroller's operating memory, which is transmitted to the controller for displaying.
+
 * Screen buffer is considered as an image of controller's graphical memory.
 * Library methods prefixed with `print` performs all manipulation in the screen buffer, which state reflects the desired result for display.
 * Finally the dedicated method [display()](#display) transmits the content of the screen buffer to the controller and it causes to display result on the attached display (digital tubes).
@@ -14,8 +15,8 @@ The library controls the controller as with cache in screen buffer in the microc
 
 <a id="dependency"></a>
 ## Dependency
+
 * **Arduino.h**: Main include file for the Arduino SDK version greater or equal to 100.
-* **WProgram.h**: Main include file for the Arduino SDK version less than 100.
 * **inttypes.h**: Integer type conversions. This header file includes the exact-width integer definitions and extends them with additional facilities provided by the implementation.
 * **avr/pgmspace.h**: Storing static string in the flash memory using the method `pgm_read_byte`.
 * **Print.h**: System library for printing.
@@ -24,6 +25,7 @@ The library controls the controller as with cache in screen buffer in the microc
 <a id="Fonts"></a>
 ## Fonts
 The font is an assignment of a glyph definition to particular ASCII code.
+
 * A 7-segment display glyph is defined by a segment mask of the controller.
 * Every font is defined as one-dimensional array with the same name `gbjFont7segTable`, stored in a separate include file with the naming convention `font7seg_<variant>.h` in the subfolder `extras`. Font variants differentiate from each other by length and content of that array.
 * The library contains those fonts:
@@ -55,12 +57,14 @@ All constants are embedded into the class as static ones including result and er
 
 <a id="interface"></a>
 ## Interface
-The methods in bold return [result or error codes](#results) and communicate with the controller directly. The methods for screen buffer manipulation return nothing, just update the content of the screen buffer as an image of controller registers, and must be followed by [display()](#display) method in order to display the content of the screen buffer.
 
-It is possible to use functions from the parent library [Print](#dependency), which is extended by this library.
+* The methods in **bold** return [result or error codes](#results) and communicate with the controller directly.
+* The getters in _italic_ are static and can be called directly from the library without need of their instantiation.
+* The methods for screen buffer manipulation return nothing, just update the content of the screen buffer as an image of controller registers, and must be followed by [display()](#display) method in order to display the content of the screen buffer.
+* It is possible to use functions from the parent library [Print](#dependency), which is extended by this library.
 
 
-##### Main functions
+#### Main functions
 
 * [gbj_tm1637()](#constructor)
 * [**begin()**](#begin)
@@ -104,9 +108,9 @@ It is possible to use functions from the parent library [Print](#dependency), wh
 #### Getters
 
 * [getContrast()](#getContrast)
-* [getContrastMax()](#getContrastMax)
+* [_getContrastMax()_](#getContrastMax)
 * [getDigits()](#getDigits)
-* [getDigitsMax()](#getDigitsMax)
+* [_getDigitsMax()_](#getDigitsMax)
 * [getLastCommand()](#getLastCommand)
 * [**getLastResult()**](#getLastResult)
 * [getPrint()](#getPrint)
@@ -153,6 +157,7 @@ The library instance object for display geometry.
 
 #### Description
 The method checks the microcontroller's pins defined in the [constructor](#constructor) and preforms initial sequence recommended by the data sheet for the controller.
+
 * The method checks whether pins set by constructor are not equal.
 * The method clears the display and sets it to the normal operating mode.
 
@@ -173,6 +178,7 @@ Result code from [Result and error codes](#results).
 
 #### Description
 The method transmits current content of the screen buffer to the driver after potential digit order transformation, so that its content is displayed immediatelly and stays unchanged until another transmission.
+
 * The method utilizes automatic addressing mode of the driver.
 * The input transformation table transforms screen buffer digit order to the display hardware digit order. Some 6-digit displays have usually 2 banks of 3-digit digital tubes with hardware order {2, 1, 0, 5, 4, 3}, while the screen buffer is orderer as {0, 1, 2, 3, 4, 5}.
 * The referenced input array should be as long as there are [digits](#prm_digits) defined in the constructor at least.
@@ -212,6 +218,7 @@ setup()
 
 #### Description
 Corresponding method either turns on or off the entire display module or toggles its state without changing current contrast level.
+
 * All methods are suitable for making a display module blinking.
 
 #### Syntax
@@ -238,6 +245,7 @@ Result code from [Result and error codes](#results).
 
 #### Description
 The method turns off all segments including for radixes of all digital tubes and then sets the printing position for subsequent printing.
+
 * It is a wrapper method for subsequent calling methods [printDigitOff()](#printDigitSwitch), [printRadixOff()](#printRadix), and [placePrint()](#placePrint).
 
 #### Syntax
@@ -266,6 +274,7 @@ None
 
 #### Description
 Corresponding method performs corresponding manipulation with radix segment (usually 8th one) of particular glyph without influence on its glyph segments (first 7 segments) in the screen buffer.
+
 * Each method is overloaded. If there is no input parameter provided, the method performs appropriate action on all controlled digital tubes.
 
 #### Syntax
@@ -354,6 +363,7 @@ None
 
 #### Description
 The coressponding method performs corresponding manipulation by turning on or off all glyph segments at once of the display without changing glyph radix segments.
+
 * Each method is overloaded. If there is no input parameter provided, the method performs appropriate action on all controlled digital tubes.
 
 #### Syntax
@@ -382,6 +392,7 @@ None
 
 #### Description
 The method prints text starting from provided or default position on digital tubes.
+
 * The method clears the display right before printing.
 * It is a wrapper method for subsequent calling methods [displayClear()](#displayClear) and system method *print()*.
 
@@ -415,6 +426,7 @@ None
 
 #### Description
 The method prints text starting from provided or default position on digital tubes without impact on radixes.
+
 * The method clears digits right before printing leaving radixes intact.
 * The method is suitable for displaying data, where radixes are independent of them and are used for another purpose.
 * It is a wrapper method for subsequent calling methods [printDigitOff()](#printDigitOff), [placePrint()](#placePrint), and system method *print()*.
@@ -447,6 +459,7 @@ None
 
 #### Description
 The method stores desired position of a digital tube where the subsequent print should start.
+
 * The method should be called right before any printing method, which does not have its input parameter for setting printing position.
 
 #### Syntax
@@ -471,6 +484,7 @@ None
 
 #### Description
 The library inherits the system *Print* class, so that all regular print functions can be used.
+
 * Actually all print functions eventually call one of listed write methods, so that all of them should be implemented.
 * If some character (ASCII) code is not present in the font table, i.e., it is unknown for the library, that character is ignored and not displayed.
 * If unknown character has ASCII code of *comma*, *dot*, or *colon*, the library turns on the radix segments of the recently displayed digit. Thus, the decimal points or colon can be present in displayed string at proper position and does not need to be controlled separately.
@@ -516,6 +530,7 @@ None
 
 #### Description
 The corresponding method sets the respective level of the display contrast.
+
 * The contrast is perceived as the brightness of the display.
 * The brightness is technically implemented with <abbr title="Pulse Width Modulation">PWM</abbr> of segments power supply.
 * The methods for extreme contrasts are just for convenience.
@@ -541,6 +556,7 @@ Result code from [Result and error codes](#results).
 
 #### Description
 The method gathers font parameters for printing characters on 7-segment displays.
+
 * Font definition is usually included to an application sketch from particular include file, while the font table resides in programmatic (flash) memory of a microcontroller in order to save operational memory (SRAM).
 * Each glyph of a font consists of the pair of bytes. The first byte determines ASCII code of a glyph and second byte determines segment mask of a glyph. It allows to defined only displayable glyphs on 7-segment displays and suppress need to waste memory for useless characters.
 
@@ -585,6 +601,7 @@ setup()
 
 #### Description
 The method sets or initializes the internal status of recent processing on the one-wire bus to input value.
+
 * Without input parameter the method initializes internal status to success result code with class constant [SUCCESS](#results).
 * The method without input parameter is usually called right before any operation on the bus in order to reset the internal status or in methods without bus communication.
 
@@ -778,6 +795,7 @@ Flag about display state.
 
 #### Description
 The method returns a logical flag whether the recent operation was successful or failed respectivelly.
+
 * The corresponding result code can be obtained by the method [getLastResult()]((#getLastResult).
 
 #### Syntax

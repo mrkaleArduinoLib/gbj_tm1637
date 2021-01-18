@@ -514,12 +514,12 @@ public:
   {
     return _status.digits;
   } // Current digital tubes for displaying
-  inline uint8_t getDigitsMax()
+  static inline uint8_t getDigitsMax()
   {
-    return DIGITS;
+    return Geometry::DIGITS;
   } // Maximal supported digital tubes
   inline uint8_t getContrast() { return _status.contrast; } // Current contrast
-  inline uint8_t getContrastMax() { return 7; } // Maximal contrast
+  static inline uint8_t getContrastMax() { return 7; } // Maximal contrast
   inline uint8_t getPrint() { return _print.digit; } // Current display position
 
 private:
