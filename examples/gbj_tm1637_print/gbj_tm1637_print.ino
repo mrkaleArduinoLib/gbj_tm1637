@@ -23,7 +23,7 @@
 #include "../extras/font7seg_basic.h"
 #include "gbj_tm1637.h"
 
-#define SKETCH "GBJ_TM1637_PRINT 1.0.0"
+#define SKETCH "GBJ_TM1637_PRINT 1.1.0"
 
 const unsigned int PERIOD_TEST = 2000; // Time in miliseconds between tests
 const unsigned int PERIOD_VALUE =
@@ -89,7 +89,7 @@ void loop()
     unsigned char minute = i / 60;
     unsigned char second = i % 60;
     sprintf(textBuffer, "%02u%02u", minute, second);
-    disp.printText(textBuffer);
+    disp.printGlyphs(textBuffer);
     disp.printRadixToggle(TM1637_COLON);
     disp.display();
     delay(PERIOD_VALUE);
