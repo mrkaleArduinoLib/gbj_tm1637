@@ -85,9 +85,9 @@ public:
   */
   inline gbj_tm1637(uint8_t pinClk = 2, uint8_t pinDio = 3, uint8_t digits = 4)
   {
-    _status.pinClk = pinClk;
-    _status.pinDio = pinDio;
-    _status.digits = min(digits, (uint8_t)Geometry::DIGITS);
+    status_.pinClk = pinClk;
+    status_.pinDio = pinDio;
+    status_.digits = min(digits, (uint8_t)Geometry::DIGITS);
   }
 
   /*
@@ -146,11 +146,11 @@ public:
   ResultCodes displayOff();
   inline ResultCodes displayToggle()
   {
-    return _status.state ? displayOff() : displayOn();
+    return status_.state ? displayOff() : displayOn();
   }
   ResultCodes displayBreath()
   {
-    return _status.contrast > getContrastMin() ? setContrastMin()
+    return status_.contrast > getContrastMin() ? setContrastMin()
                                                : setContrastMax();
   }
 
@@ -196,32 +196,32 @@ public:
   */
   inline void printRadixOn(uint8_t digit)
   {
-    if (digit < _status.digits)
-      _print.buffer[digit] |= 0x80;
+    if (digit < status_.digits)
+      print_.buffer[digit] |= 0x80;
   }
   inline void printRadixOn()
   {
-    for (uint8_t digit = 0; digit < _status.digits; digit++)
+    for (uint8_t digit = 0; digit < status_.digits; digit++)
       printRadixOn(digit);
   }
   inline void printRadixOff(uint8_t digit)
   {
-    if (digit < _status.digits)
-      _print.buffer[digit] &= ~0x80;
+    if (digit < status_.digits)
+      print_.buffer[digit] &= ~0x80;
   }
   inline void printRadixOff()
   {
-    for (uint8_t digit = 0; digit < _status.digits; digit++)
+    for (uint8_t digit = 0; digit < status_.digits; digit++)
       printRadixOff(digit);
   }
   inline void printRadixToggle(uint8_t digit)
   {
-    if (digit < _status.digits)
-      _print.buffer[digit] ^= 0x80;
+    if (digit < status_.digits)
+      print_.buffer[digit] ^= 0x80;
   }
   inline void printRadixToggle()
   {
-    for (uint8_t digit = 0; digit < _status.digits; digit++)
+    for (uint8_t digit = 0; digit < status_.digits; digit++)
       printRadixToggle(digit);
   }
 
@@ -251,7 +251,7 @@ public:
   */
   inline void printDigit(uint8_t segmentMask = 0b01111111, uint8_t digit = 0)
   {
-    if (digit < _status.digits)
+    if (digit < status_.digits)
       gridWrite(segmentMask, digit, digit);
   }
 
@@ -323,8 +323,8 @@ public:
   */
   inline void placePrint(uint8_t digit = 0)
   {
-    if (digit < _status.digits)
-      _print.digit = digit;
+    if (digit < status_.digits)
+      print_.digit = digit;
   };
 
   /*
@@ -444,7 +444,7 @@ public:
   // Public setters
   inline ResultCodes setLastResult(ResultCodes result = ResultCodes::SUCCESS)
   {
-    return _status.lastResult = result;
+    return status_.lastResult = result;
   };
 
   /*
@@ -502,8 +502,8 @@ public:
   void setFont(const uint8_t *fontTable, uint8_t fontTableSize);
 
   // Public getters
-  inline ResultCodes getLastResult() { return _status.lastResult; }
-  inline bool isSuccess() { return _status.lastResult == ResultCodes::SUCCESS; }
+  inline ResultCodes getLastResult() { return status_.lastResult; }
+  inline bool isSuccess() { return status_.lastResult == ResultCodes::SUCCESS; }
   inline bool isSuccess(ResultCodes result)
   {
     setLastResult(result);
@@ -515,21 +515,21 @@ public:
     setLastResult(result);
     return isError();
   }
-  inline bool isDisplayOn() { return _status.state; }
+  inline bool isDisplayOn() { return status_.state; }
   inline bool isDisplayOff() { return !isDisplayOn(); }
-  inline uint8_t getLastCommand() { return _status.lastCommand; }
+  inline uint8_t getLastCommand() { return status_.lastCommand; }
   inline uint8_t getDigits()
   {
-    return _status.digits;
+    return status_.digits;
   } // Current digital tubes for displaying
   static inline uint8_t getDigitsMax()
   {
     return Geometry::DIGITS;
   } // Maximal supported digital tubes
-  inline uint8_t getContrast() { return _status.contrast; } // Current contrast
+  inline uint8_t getContrast() { return status_.contrast; } // Current contrast
   static inline uint8_t getContrastMax() { return 7; } // Maximal contrast
   static inline uint8_t getContrastMin() { return 0; } // Minimal contrast
-  inline uint8_t getPrint() { return _print.digit; } // Current display position
+  inline uint8_t getPrint() { return print_.digit; } // Current display position
 
 private:
   enum Commands : uint8_t
@@ -573,12 +573,12 @@ private:
   {
     uint8_t buffer[Geometry::BYTES_ADDR]; // Screen buffer
     uint8_t digit; // Current grid for next printing
-  } _print; // Display hardware parameters for printing
+  } print_; // Display hardware parameters for printing
   struct Bitmap
   {
     const uint8_t *table; // Pointer to a font table
     uint8_t glyphs; // Number of glyphs in the font table
-  } _font; // Font parameters
+  } font_; // Font parameters
   struct Status
   {
     ResultCodes lastResult; // Result of a recent operation
@@ -588,7 +588,7 @@ private:
     uint8_t digits; // Amount of controlled digital tubes
     uint8_t contrast; // Current contrast level
     bool state = true; // Current display ON/OFF state
-  } _status; // Microcontroller status features
+  } status_; // Microcontroller status features
 
   inline void swapByte(uint8_t a, uint8_t b)
   {
@@ -601,7 +601,7 @@ private:
   };
   inline uint8_t setLastCommand(uint8_t lastCommand)
   {
-    return _status.lastCommand = lastCommand;
+    return status_.lastCommand = lastCommand;
   };
   void waitPulseClk(); // Delay for clock pulse duration
   void beginTransmission(); // Start condition
