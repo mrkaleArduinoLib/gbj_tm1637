@@ -1,4 +1,5 @@
 <a id="library"></a>
+
 # gbj_tm1637
 Library for utilizing display modules with TM1637 controller. Those modules are available in variants with colon (clock displays) only after the second digit or with decimal point after every digit, usually with 4 digits, although the controller can drive up to 6 digits.
 The library controls the controller as with cache in screen buffer in the microcontroller's operating memory, which is transmitted to the controller for displaying.
@@ -14,6 +15,7 @@ The library controls the controller as with cache in screen buffer in the microc
 
 
 <a id="dependency"></a>
+
 ## Dependency
 
 * **Arduino.h**: Main include file for the Arduino SDK version greater or equal to 100.
@@ -23,6 +25,7 @@ The library controls the controller as with cache in screen buffer in the microc
 
 
 <a id="Fonts"></a>
+
 ## Fonts
 The font is an assignment of a glyph definition to particular ASCII code.
 
@@ -41,6 +44,7 @@ The font is an assignment of a glyph definition to particular ASCII code.
 
 
 <a id="Constants"></a>
+
 ## Constants
 All constants are embedded into the class as static ones including result and error codes.
 
@@ -48,6 +52,7 @@ All constants are embedded into the class as static ones including result and er
 
 
 <a id="results"></a>
+
 #### Result and error codes
 
 * **SUCCESS**: Result code for successful processing.
@@ -56,6 +61,7 @@ All constants are embedded into the class as static ones including result and er
 
 
 <a id="interface"></a>
+
 ## Interface
 
 * The methods in **bold** return [result or error codes](#results) and communicate with the controller directly.
@@ -76,6 +82,7 @@ All constants are embedded into the class as static ones including result and er
 * [**displayOff()**](#displaySwitch)
 * [**displayOn()**](#displaySwitch)
 * [**displayToggle()**](#displaySwitch)
+* [**displayBreath()**](#displayBreath)
 
 
 #### Screen buffer manipulation
@@ -95,6 +102,7 @@ All constants are embedded into the class as static ones including result and er
 
 
 <a id="setters"></a>
+
 #### Setters
 
 * [**setContrast()**](#setContrast)
@@ -105,10 +113,12 @@ All constants are embedded into the class as static ones including result and er
 
 
 <a id="getters"></a>
+
 #### Getters
 
 * [getContrast()](#getContrast)
-* [_getContrastMax()_](#getContrastMax)
+* [_getContrastMax()_](#getContrastExtreme)
+* [_getContrastMin()_](#getContrastExtreme)
 * [getDigits()](#getDigits)
 * [_getDigitsMax()_](#getDigitsMax)
 * [getLastCommand()](#getLastCommand)
@@ -121,6 +131,7 @@ All constants are embedded into the class as static ones including result and er
 
 
 <a id="constructor"></a>
+
 ## gbj_tm1637()
 
 #### Description
@@ -141,6 +152,7 @@ The constructor method sanitizes and stores physical features of the display and
 
 
 <a id="prm_digits"></a>
+
 * **digits**: Number of 7-segment digital tubes to be controlled. Default value is aimed for clock display with 4 digits as well as for TM1636 controller.
 	* *Valid values*: 0 ~ 6 ([getDigitsMax()](#getDigitsMax) according to attached LED display)
 	* *Default value*: 4 (for usual clock and numeric LED displays)
@@ -153,6 +165,7 @@ The library instance object for display geometry.
 
 
 <a id="begin"></a>
+
 ## begin()
 
 #### Description
@@ -174,6 +187,7 @@ Result code from [Result and error codes](#results).
 
 
 <a id="display"></a>
+
 ## display()
 
 #### Description
@@ -214,6 +228,7 @@ setup()
 
 
 <a id="displaySwitch"></a>
+
 ## displayOn(), displayOff(), displayToggle()
 
 #### Description
@@ -240,7 +255,32 @@ Result code from [Result and error codes](#results).
 [Back to interface](#interface)
 
 
+<a id="displayBreath"></a>
+
+## displayBreath()
+
+#### Description
+The method set either maximal or minimal constrast level and enables to mimic a display breathing.
+
+#### Syntax
+	gbj_tm1637::ResultCodes displayBreath()
+
+#### Parameters
+None
+
+#### Returns
+Result code from [Result and error codes](#results).
+
+#### See also
+[setContrastMax()](#setContrast)
+
+[setContrastMin()](#setContrast)
+
+[Back to interface](#interface)
+
+
 <a id="displayClear"></a>
+
 ## displayClear()
 
 #### Description
@@ -270,6 +310,7 @@ None
 
 
 <a id="printRadix"></a>
+
 ## printRadixOn(), printRadixOff(), printRadixToggle()
 
 #### Description
@@ -304,6 +345,7 @@ None
 
 
 <a id="printDigit"></a>
+
 ## printDigit()
 
 #### Description
@@ -336,6 +378,7 @@ None
 
 
 <a id="printDigitAll"></a>
+
 ## printDigitAll()
 
 #### Description
@@ -359,6 +402,7 @@ None
 
 
 <a id="printDigitSwitch"></a>
+
 ## printDigitOn(), printDigitOff()
 
 #### Description
@@ -388,6 +432,7 @@ None
 
 
 <a id="printText"></a>
+
 ## printText()
 
 #### Description
@@ -422,6 +467,7 @@ None
 
 
 <a id="printGlyphs"></a>
+
 ## printGlyphs()
 
 #### Description
@@ -455,6 +501,7 @@ None
 
 
 <a id="placePrint"></a>
+
 ## placePrint()
 
 #### Description
@@ -480,6 +527,7 @@ None
 
 
 <a id="write"></a>
+
 ## write()
 
 #### Description
@@ -526,6 +574,7 @@ None
 
 
 <a id="setContrast"></a>
+
 ## setContrast(), setContrastMax(), setContrastMin()
 
 #### Description
@@ -542,7 +591,7 @@ The corresponding method sets the respective level of the display contrast.
 
 #### Parameters
 * **contrast**: Level of contrast/brightness.
-	* *Valid values*: 0 ~ 7 ([getContrastMax()](#getContrastMax))
+	* *Valid values*: 0 ~ 7 ([getContrastExtreme()](#getContrastExtreme))
 	* *Default value*: 3
 
 #### Returns
@@ -552,6 +601,7 @@ Result code from [Result and error codes](#results).
 
 
 <a id="setFont"></a>
+
 ## setFont()
 
 #### Description
@@ -597,6 +647,7 @@ setup()
 
 
 <a id="setLastResult"></a>
+
 ## setLastResult()
 
 #### Description
@@ -625,6 +676,7 @@ New (actual) result code of recent operation from [Result and error codes](#resu
 
 
 <a id="getLastResult"></a>
+
 ## getLastResult()
 
 #### Description
@@ -646,6 +698,7 @@ Result code of the recent processing from [Result and error codes](#results).
 
 
 <a id="getLastCommand"></a>
+
 ## getLastCommand()
 
 #### Description
@@ -664,6 +717,7 @@ Recently used command code.
 
 
 <a id="getDigits"></a>
+
 ## getDigits()
 
 #### Description
@@ -685,6 +739,7 @@ Current number of controlled digital tubes by a library instance object.
 
 
 <a id="getDigitsMax"></a>
+
 ## getDigitsMax()
 
 #### Description
@@ -706,6 +761,7 @@ Maximal supported number of digital tubes by the controller, which is 6.
 
 
 <a id="getContrast"></a>
+
 ## getContrast()
 
 #### Description
@@ -718,7 +774,7 @@ The method returns the current contrast/brightness level stored in the library i
 None
 
 #### Returns
-Current contrast level counting up to [getContrastMax()](#getContrastMax).
+Current contrast level counting up to [getContrastExtreme()](#getContrastExtreme).
 
 #### See also
 [setContrast()](#setContrast)
@@ -726,20 +782,23 @@ Current contrast level counting up to [getContrastMax()](#getContrastMax).
 [Back to interface](#interface)
 
 
-<a id="getContrastMax"></a>
-## getContrastMax()
+<a id="getContrastExtreme"></a>
+
+## getContrastMax(), getContrastMin()
 
 #### Description
-The method returns the maximal contrast/brightness level supported by the controller.
+Corresponding method returns maximal or minimal contrast/brightness level supported by the controller.
 
 #### Syntax
 	uint8_t getContrastMax()
+	uint8_t getContrastMin()
 
 #### Parameters
 None
 
 #### Returns
-Maximal contrast level supported by the controller, which is 7.
+Maximal contrast level supported by the controller is 7.
+Minimal contrast level supported by the controller is 0.
 
 #### See also
 [getContrast()](#getContrast)
@@ -748,6 +807,7 @@ Maximal contrast level supported by the controller, which is 7.
 
 
 <a id="getPrint"></a>
+
 ## getPrint()
 
 #### Description
@@ -769,6 +829,7 @@ Current printing position counting from 0. It may get beyond the maximal control
 
 
 <a id="isState"></a>
+
 ## isDisplayOn(), isDisplayOff()
 
 #### Description
@@ -791,6 +852,7 @@ Flag about display state.
 
 
 <a id="isResult"></a>
+
 ## isSuccess(), isError()
 
 #### Description

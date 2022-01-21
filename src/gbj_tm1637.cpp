@@ -1,5 +1,5 @@
 #include "gbj_tm1637.h"
-const String gbj_tm1637::VERSION = "GBJ_TM1637 1.0.0";
+const String gbj_tm1637::VERSION = "GBJ_TM1637 1.1.0";
 
 gbj_tm1637::ResultCodes gbj_tm1637::begin()
 {
@@ -88,18 +88,6 @@ gbj_tm1637::ResultCodes gbj_tm1637::displayOff()
     _status.state = false;
   }
   return getLastResult();
-}
-
-gbj_tm1637::ResultCodes gbj_tm1637::displayToggle()
-{
-  if (_status.state)
-  {
-    return displayOff();
-  }
-  else
-  {
-    return displayOn();
-  }
 }
 
 gbj_tm1637::ResultCodes gbj_tm1637::setContrast(uint8_t contrast)

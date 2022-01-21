@@ -16,8 +16,10 @@ displayClear	KEYWORD2
 displayOff	KEYWORD2
 displayOn	KEYWORD2
 displayToggle	KEYWORD2
+displayBreath	KEYWORD2
 getContrast	KEYWORD2
 getContrastMax	KEYWORD2
+getContrastMin	KEYWORD2
 getDigits	KEYWORD2
 getDigitsMax	KEYWORD2
 getLastCommand	KEYWORD2

@@ -53,8 +53,8 @@ public:
   enum ResultCodes : uint8_t
   {
     SUCCESS = 0,
-    ERROR_PINS = 255, // Error defining pins, usually both are the same
-    ERROR_ACK = 254, // Error at acknowledging a command
+    ERROR_PINS, // Error defining pins, usually both are the same
+    ERROR_ACK, // Error at acknowledging a command
   };
 
   /*
@@ -144,7 +144,15 @@ public:
   */
   ResultCodes displayOn();
   ResultCodes displayOff();
-  ResultCodes displayToggle();
+  inline ResultCodes displayToggle()
+  {
+    return _status.state ? displayOff() : displayOn();
+  }
+  ResultCodes displayBreath()
+  {
+    return _status.contrast > getContrastMin() ? setContrastMin()
+                                               : setContrastMax();
+  }
 
   /*
     Clear entire digital tubes including radixes and set printing position.
@@ -455,8 +463,8 @@ public:
     RETURN: Result code
   */
   ResultCodes setContrast(uint8_t contrast = 3);
-  ResultCodes setContrastMin() { return setContrast(0); };
-  ResultCodes setContrastMax() { return setContrast(7); };
+  ResultCodes setContrastMin() { return setContrast(getContrastMin()); };
+  ResultCodes setContrastMax() { return setContrast(getContrastMax()); };
 
   /*
     Define font parameters for printing.
@@ -520,6 +528,7 @@ public:
   } // Maximal supported digital tubes
   inline uint8_t getContrast() { return _status.contrast; } // Current contrast
   static inline uint8_t getContrastMax() { return 7; } // Maximal contrast
+  static inline uint8_t getContrastMin() { return 0; } // Minimal contrast
   inline uint8_t getPrint() { return _print.digit; } // Current display position
 
 private:
