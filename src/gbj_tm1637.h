@@ -1,36 +1,22 @@
-/*
-  NAME:
-  gbj_tm1637
-
-  DESCRIPTION:
-  Library for 7-segment digital tubes displays controlled by the driver TM1637.
-  - The library controls the driver as a state machine with screen buffer in the
-    microcontroller's operating memory, which is transmitted to the controller
-    for displaying.
-    - Screen buffer is considered as an image of controller's graphical memory.
-    - Library methods prefixed with "print" performes all graphical
-      manipulation in the screen buffer, which state reflects the desired image
-      for display.
-    - Finally the dedicated method transmits the content of the screen buffer
-      to the driver and it causes to display the image on the attached display.
-  - The driver TM1637 can control up to 6 digital tubes each with radix (decimal
-    dot or colon).
-  - The library controls 7-segment glyphs (digits) independently from radix 8th
-    segments of glyphs.
-  - The library can control the TM1636 driver as well, which is binary
-    compatible with TM1637 but controls just 4 digital tubes.
-  - The library does not implement key scan capabalities of the driver, because
-    display modules with TM1637 controller do not implement a keypad.
-
-  LICENSE:
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the license GNU GPL v3
-  http://www.gnu.org/licenses/gpl-3.0.html (related to original code) and MIT
-  License (MIT) for added code.
-
-  CREDENTIALS:
-  Author: Libor Gabaj
-  GitHub: https://github.com/mrkaleArduinoLib/gbj_tm1637.git
+/**
+ * @file gbj_tm1637.h
+ * @brief Library for 7-segment digital tube displays controlled by TM1637.
+ * @details The library controls TM1637 as a state machine with a local screen
+ * buffer mirrored to the controller memory. Printing methods modify the screen
+ * buffer and the display method transmits the buffer to the controller.
+ * @details TM1637 can control up to 6 digital tubes with radix segments. The
+ * library can also drive TM1636, which is binary compatible with TM1637 and
+ * controls 4 digital tubes.
+ * @details Key scan capabilities are not implemented because typical TM1637
+ * display modules do not expose keypads.
+ *
+ * @copyright This program is free software; you can redistribute it and/or
+ * modify it under the terms of the license GNU GPL v3
+ * http://www.gnu.org/licenses/gpl-3.0.html (related to original code) and MIT
+ * License (MIT) for added code.
+ *
+ * @author Libor Gabaj
+ * @see https://github.com/mrkaleArduinoLib/gbj_tm1637.git
  */
 #ifndef GBJ_TM1637_H
 #define GBJ_TM1637_H
@@ -41,48 +27,29 @@
   #include <inttypes.h>
 #elif defined(ESP8266) || defined(ESP32)
   #include <Arduino.h>
-#elif defined(PARTICLE)
-  #include <Particle.h>
 #endif
 
+/**
+ * @class gbj_tm1637
+ * @brief TM1637/TM1636 7-segment display driver.
+ */
 class gbj_tm1637 : public Print
 {
 public:
-  static const String VERSION;
-
   enum ResultCodes : uint8_t
   {
     SUCCESS = 0,
-    ERROR_PINS, // Error defining pins, usually both are the same
-    ERROR_ACK, // Error at acknowledging a command
+    ERROR_PINS,
+    ERROR_ACK,
   };
 
-  /*
-    Initialize display geometry.
-
-    DESCRIPTION:
-    The constructor methodsanitizes and stores physical features of the display
-    to the class instance object.
-
-    PARAMETERS:
-    pinClk - Microcontroller pin's number utilized as a serial clock.
-      - Data type: non-negative integer
-      - Default value: 2
-      - Limited range: 0 ~ 255 (by microcontroller datasheet)
-
-    pinDio - Microcontroller pin's number utilized as a data input and output.
-      - Data type: non-negative integer
-      - Default value: 3
-      - Limited range: 0 ~ 255 (by microcontroller datasheet)
-
-    digits - Number of 7-segment LED digits to be controlled. Default value is
-      aimed for clock LED display with 4 LEDs as well as for TM1636 driver.
-      - Data type: non-negative integer
-      - Default value: 4
-      - Limited range: 1 ~ 6
-
-    RETURN: object
-  */
+  /**
+   * @brief Construct a TM1637/TM1636 display driver instance.
+   * @details Constructor sanitizes and stores physical display configuration.
+   * @param pinClk Microcontroller pin number used as serial clock.
+   * @param pinDio Microcontroller pin number used as data input/output.
+   * @param digits Number of controlled digital tubes (1 to 6 for TM1637, 1 to 4 for TM1636).
+   */
   inline gbj_tm1637(uint8_t pinClk = 2, uint8_t pinDio = 3, uint8_t digits = 4)
   {
     status_.pinClk = pinClk;
@@ -90,86 +57,89 @@ public:
     status_.digits = min(digits, (uint8_t)Geometry::DIGITS);
   }
 
-  /*
-    Initialize display.
+  /**
+   * @brief Initialize the display driver and hardware pins.
+   * @details Configures communication pins, validates pin mapping, clears the
+   * display, and sets default contrast and operation mode.
+   * @return Result code of the initialization sequence.
+   */
+  inline ResultCodes begin()
+  {
+    setLastResult();
+    if (status_.pinClk == status_.pinDio)
+      return setLastResult(ResultCodes::ERROR_PINS);
+    pinMode(status_.pinClk, OUTPUT);
+    pinMode(status_.pinDio, OUTPUT);
+    displayClear();
+    return setContrast();
+  }
 
-    DESCRIPTION:
-    The method sets the microcontroller's pins dedicated for the driver and
-    perfoms initial sequence recommended by the data sheet for the controller.
-    - The method clears the display and sets it to the normal operation mode.
-    - The method checks whether pins set by constructor are not equal.
+  /**
+   * @brief Transmit the screen buffer to the controller.
+   * @details Sends the current buffer using automatic addressing and optional
+   * digit reordering for displays with different physical tube order.
+   * @param digitReorder Optional transformation table mapping logical buffer
+   * indexes to physical display positions.
+   * @return Result code of the transmission.
+   */
+  inline ResultCodes display(uint8_t *digitReorder = 0)
+  {
+    if (busSend(Commands::CMD_DATA_INIT | Commands::CMD_DATA_NORMAL |
+                Commands::CMD_DATA_WRITE | Commands::CMD_DATA_AUTO))
+      return getLastResult();
+    if (busSend(
+          Commands::CMD_ADDR_INIT, print_.buffer, status_.digits, digitReorder))
+      return getLastResult();
+    return getLastResult();
+  }
 
-    PARAMETERS: none
+  /**
+   * @brief Turn the display output on or off.
+   * @details These methods change global display state without modifying the
+   * screen buffer content.
+   * @return Result code of the command sent to the controller.
+   */
+  inline ResultCodes displayOn()
+  {
+    if (!busSend(Commands::CMD_DISP_INIT | Commands::CMD_DISP_ON |
+                 status_.contrast))
+    {
+      status_.state = true;
+    }
+    return getLastResult();
+  }
+  inline ResultCodes displayOff()
+  {
+    if (!busSend(Commands::CMD_DISP_INIT | Commands::CMD_DISP_OFF))
+    {
+      status_.state = false;
+    }
+    return getLastResult();
+  }
 
-    RETURN: Result code.
-  */
-  ResultCodes begin();
-
-  /*
-    Transmit screen buffer to driver.
-
-    DESCRIPTION:
-    The method transmits current content of the screen buffer to the driver
-    after potential digit order transformation, so that its content is displayed
-    immediatelly and stays unchanged until another transmission.
-    - The method utilizes automatic addressing mode of the driver.
-    - The input transformation table transforms screen buffer digit order to the
-      display hardware digit order. E.g., some 6-digit displays have usually
-      2 banks of 3-digit digital tubes with hardware order {2, 1, 0, 5, 4, 3},
-      while the screen buffer is ordered as {0, 1, 2, 3, 4, 5}.
-
-    PARAMETERS:
-    digitReorder - Array with transformation table where an index defines the
-      screen buffer position and a value defines the display digital tube
-      position.
-      - Data type: pointer to a non-negative byte array
-      - Default value: 0
-      - Limited range: microcontroller's addressing range
-
-    RETURN: Result code.
-  */
-  ResultCodes display(uint8_t *digitReorder = 0);
-
-  /*
-    Manipulate display off or on.
-
-    DESCRIPTION:
-    Corresponding method either either turns on or off the entire display
-    module or toggles its state without changing current contrast level.
-    - All methods are suitable for making a display module blink.
-
-    PARAMETERS: none
-
-    RETURN: Result code.
-  */
-  ResultCodes displayOn();
-  ResultCodes displayOff();
+  /**
+   * @brief Toggle display power state.
+   * @return Result code of the issued display command.
+   */
   inline ResultCodes displayToggle()
   {
     return status_.state ? displayOff() : displayOn();
   }
+
+  /**
+   * @brief Toggle between minimal and maximal contrast.
+   * @return Result code of the contrast command.
+   */
   ResultCodes displayBreath()
   {
     return status_.contrast > getContrastMin() ? setContrastMin()
                                                : setContrastMax();
   }
 
-  /*
-    Clear entire digital tubes including radixes and set printing position.
-
-    DESCRIPTION:
-    The method turns off all segments including for radixes of all digital tubes
-    and then sets the printing position for subsequent printing.
-
-    PARAMETERS:
-    digit - Number of digital tube counting from 0 where the printing should
-      start after display clearing.
-      - Data type: non-negative integer
-      - Default value: 0
-      - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
-
-    RETURN: none
-  */
+  /**
+   * @brief Clear all glyph and radix segments and set print position.
+   * @param digit Target digit index for subsequent printing.
+   */
   inline void displayClear(uint8_t digit = 0)
   {
     printDigitOff();
@@ -177,217 +147,155 @@ public:
     placePrint(digit);
   }
 
-  /*
-    Manipulate digital tubes' radixes of a display module.
-
-    DESCRIPTION:
-    The corresponding method performs respective manipulation with radix segment
-    (usually 8-th one) of particular glyph without influence on its glyph
-    segments (first 7 segments) in the screen buffer.
-
-    PARAMETERS:
-    digit - Driver's digit tube number counting from 0, which radix segment
-      should be manipulated.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
-
-    RETURN: none
-  */
+  /**
+   * @brief Control radix segments independently from glyph segments.
+   * @param digit Digit index whose radix segment should be changed.
+   */
   inline void printRadixOn(uint8_t digit)
   {
     if (digit < status_.digits)
       print_.buffer[digit] |= 0x80;
   }
+
+  /**
+   * @brief Turn radix segments on for all digits.
+   */
   inline void printRadixOn()
   {
     for (uint8_t digit = 0; digit < status_.digits; digit++)
       printRadixOn(digit);
   }
+
+  /**
+   * @brief Turn radix segment off for one digit.
+   * @param digit Target digit index.
+   */
   inline void printRadixOff(uint8_t digit)
   {
     if (digit < status_.digits)
       print_.buffer[digit] &= ~0x80;
   }
+
+  /**
+   * @brief Turn radix segments off for all digits.
+   */
   inline void printRadixOff()
   {
     for (uint8_t digit = 0; digit < status_.digits; digit++)
       printRadixOff(digit);
   }
+
+  /**
+   * @brief Toggle radix segment for one digit.
+   * @param digit Target digit index.
+   */
   inline void printRadixToggle(uint8_t digit)
   {
     if (digit < status_.digits)
       print_.buffer[digit] ^= 0x80;
   }
+
+  /**
+   * @brief Toggle radix segments for all digits.
+   */
   inline void printRadixToggle()
   {
     for (uint8_t digit = 0; digit < status_.digits; digit++)
       printRadixToggle(digit);
   }
 
-  /*
-    Display digit segments.
-
-    DESCRIPTION:
-    The method sets glyph segments (first 7 ones) of particular digit
-    (digital tube) without influence on its radix segment in the screen buffer.
-
-    PARAMETERS:
-    segmentMask - Bit mask defining what segments should be turned on. Segments
-      are marked starting from A to G and relate to mask bits 0 to 6 counting
-      from least significant bit. The 7th bit relates to radix segment and
-      therefore it is ignored.
-      - Data type: non-negative integer
-      - Default value: 0b01111111 (all segments turned on)
-      - Limited range: 0 ~ 127
-
-    digit - Driver's digit (digital tube) number counting from 0, which glyph
-      segments should be manipulated.
-      - Data type: non-negative integer
-      - Default value: 0
-      - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
-
-    RETURN: none
-  */
+  /**
+   * @brief Set glyph segments of one digit in the screen buffer.
+   * @param segmentMask Bit mask for segments A-G. Radix bit is ignored.
+   * @param digit Target digit index.
+   */
   inline void printDigit(uint8_t segmentMask = 0b01111111, uint8_t digit = 0)
   {
     if (digit < status_.digits)
       gridWrite(segmentMask, digit, digit);
   }
 
-  /*
-    Fill display with digit segments for each digital tube.
-
-    DESCRIPTION:
-    The method sets glyph segments (first 7 ones) of all digits
-    (digital tubes) without influence on its radix segment in the screen buffer.
-
-    PARAMETERS:
-    segmentMask - Bit mask defining what segments should be turned on. Segments
-      are marked starting from A to G and relate to mask bits 0 to 6 counting
-      from least significant bit. The 7th bit relates to radix segment and
-      therefore it is ignored.
-      - Data type: non-negative integer
-      - Default value: 0b01111111 (all segments turned on)
-      - Limited range: 0 ~ 127
-
-    RETURN: none
-  */
+  /**
+   * @brief Set glyph segments of all digits in the screen buffer.
+   * @param segmentMask Bit mask for segments A-G. Radix bit is ignored.
+   */
   inline void printDigitAll(uint8_t segmentMask = 0b01111111)
   {
     gridWrite(segmentMask);
   }
 
-  /*
-    Switching digit tubes.
-
-    DESCRIPTION:
-    The corresponding method either turns on or off entire glyph (all segments)
-    of particular digit (digital tube) without influence on its radix segment
-    in the screen buffer.
-    - The method is overloaded for number of input parameters.
-    - In case of one parameter, it is considered as a digital tube position
-      that should be switched.
-    - In case of no parameter, the methods switches a digital tube position
-      internally set for subsequent printing.
-
-    PARAMETERS:
-    digit - Driver's digit (digital tube) number counting from 0, which glyph
-      segments should be manipulated.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
-
-    RETURN: none
-  */
+  /**
+   * @brief Turn complete glyphs on or off.
+   * @details These wrappers apply full segment masks to one or all digits
+   * without changing radix segments.
+   */
   inline void printDigitOn(uint8_t digit) { printDigit(0x7F, digit); }
+
+  /**
+   * @brief Turn glyph segments on for all digits.
+   */
   inline void printDigitOn() { printDigitAll(0x7F); }
+
+  /**
+   * @brief Turn glyph segments off for one digit.
+   * @param digit Target digit index.
+   */
   inline void printDigitOff(uint8_t digit) { printDigit(0x00, digit); }
+
+  /**
+   * @brief Turn glyph segments off for all digits.
+   */
   inline void printDigitOff() { printDigitAll(0x00); }
 
-  /*
-    Set printing position within digital tubes.
-
-    DESCRIPTION:
-    The method stores desired position of a digital tube where the subsequent
-    print should start.
-
-    PARAMETERS:
-    digit - Number of digital tube counting from 0 where the printing should
-      start.
-      - Data type: non-negative integer
-      - Default value: 0
-      - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
-
-    RETURN: none
-  */
+  /**
+   * @brief Set current print cursor position.
+   * @param digit Digit index where subsequent print operations should start.
+   */
   inline void placePrint(uint8_t digit = 0)
   {
     if (digit < status_.digits)
       print_.digit = digit;
   };
 
-  /*
-    Print text at desired printing position.
-
-    DESCRIPTION:
-    The method prints text starting from provided or default position on digital
-    tubes.
-    - The method is overloaded for type of printed text.
-    - The method clears the display right before printing.
-
-    PARAMETERS:
-    text - Pointer to a text that should be printed.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: microcontroller's addressing range
-
-    digit - Printing position for starting the printing.
-      - Data type: non-negative integer
-      - Default value: 0
-      - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
-
-    RETURN: none
-  */
+  /**
+   * @brief Print text after clearing full display content.
+   * @param text Text to print.
+   * @param digit Start digit index for printing.
+   */
   inline void printText(const char *text, uint8_t digit = 0)
   {
     displayClear(digit);
     print(text);
   };
+
+  /**
+   * @brief Print String text after clearing full display content.
+   * @param text Text to print.
+   * @param digit Start digit index for printing.
+   */
   inline void printText(String text, uint8_t digit = 0)
   {
     displayClear(digit);
     print(text);
   };
 
-  /*
-    Print text at desired printing position without impact on radixes.
-
-    DESCRIPTION:
-    The method prints text starting from provided or default position on digital
-    tubes and leaves radixes intact.
-    - The method is overloaded for type of printed text.
-    - The method clears only digit without radixes right before printing.
-
-    PARAMETERS:
-    text - Pointer to a text that should be printed.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: microcontroller's addressing range
-
-    digit - Printing position for starting the printing.
-      - Data type: non-negative integer
-      - Default value: 0
-      - Limited range: 0 ~ 5 (constructor's parameter digits - 1)
-
-    RETURN: none
-  */
+  /**
+   * @brief Print text while keeping current radix segments unchanged.
+   * @param text Text to print.
+   * @param digit Start digit index for printing.
+   */
   inline void printGlyphs(const char *text, uint8_t digit = 0)
   {
     printDigitOff();
     placePrint(digit);
     print(text);
   };
+
+  /**
+   * @brief Print String text while keeping current radix segments unchanged.
+   * @param text Text to print.
+   * @param digit Start digit index for printing.
+   */
   inline void printGlyphs(String text, uint8_t digit = 0)
   {
     printDigitOff();
@@ -395,201 +303,331 @@ public:
     print(text);
   };
 
-  /*
-    Print class inheritance.
+  /**
+   * @brief Write one character to the current print position.
+   * @details Unknown glyphs are ignored. Characters '.', ',', and ':' are
+   * treated as radix markers and applied to the previous printed digit.
+   * @param ascii ASCII code of the character to write.
+   * @return Number of printed digits.
+   */
+  inline size_t write(uint8_t ascii)
+  {
+    if (print_.digit >= status_.digits)
+      return 0;
+    uint8_t mask = getFontMask(ascii);
+    if (mask == Rasters::FONT_MASK_WRONG)
+    {
+      if (String(".,:").indexOf(ascii) >= 0)
+      {
+        printRadixOn(print_.digit - 1);
+      }
+      return 0;
+    }
+    else
+    {
+      printDigit(mask, print_.digit);
+      return 1;
+    }
+  }
 
-    DESCRIPTION:
-    The library inherits the system Print class, so that all regular print
-    functions can be used.
-    - Actually all print functions eventually call one of listed write methods,
-      so that all of them should be implemented.
-    - If some character (ASCII) code is not present in the font table, i.e., it
-      is unknown for the library, that character is ignored and not displayed.
-    - If unknown character has ASCII code of comma, dot, or colon, the library
-      turns on the radix segments of the recently displayed digit (lastly
-      manipulated grid). Thus, the decimal points or colon can be present in
-      displayed string at proper position and does not need to be control
-      separately.
+  /**
+   * @brief Write a null-terminated character array.
+   * @param text Text buffer to print.
+   * @return Number of printed digits.
+   */
+  inline size_t write(const char *text)
+  {
+    uint8_t digits = 0;
+    uint8_t i = 0;
+    while (text[i] != '\0' && print_.digit < status_.digits)
+    {
+      digits += write(text[i++]);
+    }
+    return digits;
+  }
 
-    PARAMETERS:
-    ascii - ASCII code of a character that should be displayed at the current
-      grid position. The methods is usually utilized internally by system
-      prints.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: 0 ~ 255
+  /**
+   * @brief Write a byte buffer with explicit size.
+   * @param buffer Input byte buffer.
+   * @param size Number of bytes to process.
+   * @return Number of printed digits.
+   */
+  inline size_t write(const uint8_t *buffer, size_t size)
+  {
+    uint8_t digits = 0;
+    for (uint8_t i = 0; i < size && print_.digit < status_.digits; i++)
+    {
+      digits += write(buffer[i]);
+    }
+    return digits;
+  }
 
-    text - Pointer to a nul terminated string that should be displayed from the
-      very beginnng of the display, i.e., from the first digit.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: microcontroller's addressing range
-
-    buffer - Pointer to a string, which part should be displayed from the very
-      beginnng of the display, i.e., from the first digit.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: microcontroller's addressing range
-
-    size - Number of characters that should be displayed from the very beginnng
-      of the display, i.e., from the first digit.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: microcontroller's addressing range
-  */
-  size_t write(uint8_t ascii);
-  size_t write(const char *text);
-  size_t write(const uint8_t *buffer, size_t size);
-
-  // Public setters
+  /**
+   * @brief Store a result code as the latest operation result.
+   * @param result Result code to store.
+   * @return Stored result code.
+   */
   inline ResultCodes setLastResult(ResultCodes result = ResultCodes::SUCCESS)
   {
     return status_.lastResult = result;
   };
 
-  /*
-    Set contrast of the digital tubes.
+  /**
+   * @brief Set brightness level and force display on.
+   * @param contrast Contrast level in range 0 to 7.
+   * @return Result code of the display command.
+   */
+  inline ResultCodes setContrast(uint8_t contrast = 3)
+  {
+    status_.contrast = contrast & getContrastMax();
+    return displayOn();
+  }
 
-    DESCRIPTION:
-    The corresponding method sets contrast to respective level of all digital
-    tubes and simultaniously turns display on.
-
-    PARAMETERS:
-    contrast - Level of constrast/brightness.
-      - Data type: non-negative integer
-      - Default value: 3
-      - Limited range: 0 ~ 7
-
-    RETURN: Result code
-  */
-  ResultCodes setContrast(uint8_t contrast = 3);
+  /**
+   * @brief Set minimal contrast.
+   * @return Result code of the contrast command.
+   */
   ResultCodes setContrastMin() { return setContrast(getContrastMin()); };
+
+  /**
+   * @brief Set maximal contrast.
+   * @return Result code of the contrast command.
+   */
   ResultCodes setContrastMax() { return setContrast(getContrastMax()); };
 
-  /*
-    Define font parameters for printing.
+  /**
+   * @brief Configure custom font table for printable glyphs.
+   * @details Each glyph entry consists of two bytes: ASCII code and segment
+   * mask. The table is typically stored in flash memory.
+   * @param fontTable Pointer to the font definition table.
+   * @param fontTableSize Number of bytes used from the table.
+   */
+  inline void setFont(const uint8_t *fontTable, uint8_t fontTableSize)
+  {
+    font_.table = fontTable;
+    font_.glyphs = fontTableSize / Rasters::FONT_WIDTH;
+  }
 
-    DESCRIPTION:
-    The method gathers font parameters for printing characters on 7-segment
-    displays.
-    - Font definition is usually included to an application sketch from
-    particular include file, while the font table resides in programmatic
-    (flash) memory of a microcontroller in order to save operational memory
-    (SRAM).
-    - Each glyph of a font consists of the pair of bytes. The first byte
-    determines ASCII code of a glyph and second byte determines segment mask of
-    a glyph. It allows to defined only displayable glyphs on 7-segment displays
-    and suppress need to waste memory for useless characters.
-
-    PARAMETERS:
-    fontTable - Pointer to a font definition table.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: microcontroller's addressing range
-
-    fontTableSize - The number of bytes that should be utilized from the font
-      table.
-      - The table size in conjunction with font character pair of bytes
-        determines the number of characters used for printing.
-      - The size can be smaller than the real size of the table,
-        however, the size should be a multiple of 2.
-      - Data type: non-negative integer
-      - Default value: none
-      - Limited range: 0 ~ 255 (maximal 127 7-segments characters)
-
-    RETURN: none
-  */
-  void setFont(const uint8_t *fontTable, uint8_t fontTableSize);
-
-  // Public getters
+  /**
+   * @brief Get latest operation result code.
+   * @return Last stored result code.
+   */
   inline ResultCodes getLastResult() { return status_.lastResult; }
+
+  /**
+   * @brief Check whether latest operation result is success.
+   * @return True if latest result is SUCCESS.
+   */
   inline bool isSuccess() { return status_.lastResult == ResultCodes::SUCCESS; }
+
+  /**
+   * @brief Store and evaluate provided result code for success.
+   * @param result Result code to store and evaluate.
+   * @return True if provided result equals SUCCESS.
+   */
   inline bool isSuccess(ResultCodes result)
   {
     setLastResult(result);
     return isSuccess();
   }
+
+  /**
+   * @brief Check whether latest operation result indicates an error.
+   * @return True if latest result is not SUCCESS.
+   */
   inline bool isError() { return !isSuccess(); }
+
+  /**
+   * @brief Store and evaluate provided result code for error.
+   * @param result Result code to store and evaluate.
+   * @return True if provided result is not SUCCESS.
+   */
   inline bool isError(ResultCodes result)
   {
     setLastResult(result);
     return isError();
   }
+
+  /**
+   * @brief Check whether display state is on.
+   * @return True if display output is enabled.
+   */
   inline bool isDisplayOn() { return status_.state; }
+
+  /**
+   * @brief Check whether display state is off.
+   * @return True if display output is disabled.
+   */
   inline bool isDisplayOff() { return !isDisplayOn(); }
+
+  /**
+   * @brief Get last command value sent to controller.
+   * @return Last command byte.
+   */
   inline uint8_t getLastCommand() { return status_.lastCommand; }
+
+  /**
+   * @brief Get configured count of active digits.
+   * @return Number of controlled digits.
+   */
   inline uint8_t getDigits()
   {
     return status_.digits;
-  } // Current digital tubes for displaying
+  }
+
+  /**
+   * @brief Get maximal number of supported digits.
+   * @return Compile-time maximum supported digits.
+   */
   static inline uint8_t getDigitsMax()
   {
     return Geometry::DIGITS;
-  } // Maximal supported digital tubes
-  inline uint8_t getContrast() { return status_.contrast; } // Current contrast
-  static inline uint8_t getContrastMax() { return 7; } // Maximal contrast
-  static inline uint8_t getContrastMin() { return 0; } // Minimal contrast
-  inline uint8_t getPrint() { return print_.digit; } // Current display position
+  }
+
+  /**
+   * @brief Get current contrast level.
+   * @return Contrast value in range 0 to 7.
+   */
+  inline uint8_t getContrast() { return status_.contrast; }
+
+  /**
+   * @brief Get maximal allowed contrast value.
+   * @return Maximal contrast.
+   */
+  static inline uint8_t getContrastMax() { return 7; }
+
+  /**
+   * @brief Get minimal allowed contrast value.
+   * @return Minimal contrast.
+   */
+  static inline uint8_t getContrastMin() { return 0; }
+
+  /**
+   * @brief Get current print cursor position.
+   * @return Current digit index for subsequent print operations.
+   */
+  inline uint8_t getPrint() { return print_.digit; }
 
 private:
+
+  /**
+   * @brief TM1637 command bit patterns.
+   * @details Values are combined and sent over the serial bus to control data
+   * mode, addressing mode, and display power/brightness.
+   */
   enum Commands : uint8_t
   {
-    // Data command setting (0x40)
-    CMD_DATA_INIT = 0b01000000, // 0x40, Command set, ORed by proper next ones
-    CMD_DATA_WRITE = 0b00, // 0x00, Write data to display register
-    CMD_DATA_READ = 0b10, // 0x02, Read key scanning data
-    CMD_DATA_AUTO = 0b000, // 0x00, Automatic address adding
-    CMD_DATA_FIXED = 0b100, // 0x04, Fixed address
-    CMD_DATA_NORMAL = 0b0000, // 0x00, Normal mode
-    CMD_DATA_TEST = 0b1000, // 0x08, Test mode
-                            // Address command setting (0xC0)
+    /** @brief Base value for data command set. */
+    CMD_DATA_INIT = 0b01000000,
+    /** @brief Data write mode. */
+    CMD_DATA_WRITE = 0b00,
+    /** @brief Data read mode. */
+    CMD_DATA_READ = 0b10,
+    /** @brief Auto-increment address mode. */
+    CMD_DATA_AUTO = 0b000,
+    /** @brief Fixed address mode. */
+    CMD_DATA_FIXED = 0b100,
+    /** @brief Normal operating mode. */
+    CMD_DATA_NORMAL = 0b0000,
+    /** @brief Test mode. */
+    CMD_DATA_TEST = 0b1000,
+    /** @brief Base value for address command set. */
     CMD_ADDR_INIT =
-      0b11000000, // 0xC0, Address set, OR-ed by display address 0x00 ~ 0x05 in
-                  // lower nibble Display control (0x80)
+      0b11000000,
+    /** @brief Base value for display control command set. */
     CMD_DISP_INIT =
-      0b10000000, // 0x80, Display control, OR-ed by proper next ones
-    CMD_DISP_OFF = 0b0000, // 0x00, Display is off
-    CMD_DISP_ON = 0b1000, // 0x08, Display is on, OR-ed by contrast 0x00 ~ 0x07
-                          // in lower 3 bits
+      0b10000000,
+    /** @brief Display off flag. */
+    CMD_DISP_OFF = 0b0000,
+    /** @brief Display on flag. */
+    CMD_DISP_ON = 0b1000,
   };
-  enum Geometry : uint8_t // Controller TM1637
+
+  /**
+   * @brief Display geometry limits.
+   */
+  enum Geometry : uint8_t
   {
-    DIGITS = 6, // Usable and maximal implemented digital tubes
-    BYTES_ADDR = 6, // By datasheet maximal addressable register position
+    /** @brief Maximum supported digit count. */
+    DIGITS = 6,
+    /** @brief Maximum addressable bytes in TM1637 display RAM. */
+    BYTES_ADDR = 6,
   };
+
+  /**
+   * @brief Timing constants for bus and acknowledge handling.
+   */
   enum Timing : uint16_t
   {
-    TIMING_RELAX = 2, // MCU relaxing delay in microseconds after pin change
-    TIMING_ACK = 500, // Timeout in microseconds for acknowledgment
+    /** @brief Relaxation delay in microseconds between signal changes. */
+    TIMING_RELAX = 2,
+    /** @brief Acknowledge timeout in microseconds. */
+    TIMING_ACK = 500,
   };
+
+  /**
+   * @brief Font table layout and sentinel values.
+   */
   enum Rasters : uint8_t
   {
+    /** @brief Number of bytes per glyph entry in font table. */
     FONT_WIDTH = 2,
+    /** @brief Index of ASCII code in glyph entry. */
     FONT_INDEX_ASCII = 0,
+    /** @brief Index of segment mask in glyph entry. */
     FONT_INDEX_MASK = 1,
-    FONT_MASK_WRONG = 0xFF, // Byte value for unknown font glyph
+    /** @brief Marker for unknown glyph lookup result. */
+    FONT_MASK_WRONG = 0xFF,
   };
+
+  /**
+   * @brief Runtime print buffer and cursor state.
+   */
   struct Print
   {
-    uint8_t buffer[Geometry::BYTES_ADDR]; // Screen buffer
-    uint8_t digit; // Current grid for next printing
-  } print_; // Display hardware parameters for printing
+    /** @brief Segment masks for each display position. */
+    uint8_t buffer[Geometry::BYTES_ADDR];
+    /** @brief Current print cursor position. */
+    uint8_t digit;
+  } print_;
+
+  /**
+   * @brief Active font table descriptor.
+   */
   struct Bitmap
   {
-    const uint8_t *table; // Pointer to a font table
-    uint8_t glyphs; // Number of glyphs in the font table
-  } font_; // Font parameters
+    /** @brief Pointer to font table in memory. */
+    const uint8_t *table;
+    /** @brief Number of glyph entries available in the table. */
+    uint8_t glyphs;
+  } font_;
+
+  /**
+   * @brief Driver status and hardware configuration.
+   */
   struct Status
   {
-    ResultCodes lastResult; // Result of a recent operation
-    uint8_t lastCommand; // Command code recently sent to controller
-    uint8_t pinClk; // Number of serial clock pin
-    uint8_t pinDio; // Number of data input/output pin
-    uint8_t digits; // Amount of controlled digital tubes
-    uint8_t contrast; // Current contrast level
-    bool state = true; // Current display ON/OFF state
-  } status_; // Microcontroller status features
+    /** @brief Result of the most recent operation. */
+    ResultCodes lastResult;
+    /** @brief Most recently sent command byte. */
+    uint8_t lastCommand;
+    /** @brief Clock pin number. */
+    uint8_t pinClk;
+    /** @brief Data pin number. */
+    uint8_t pinDio;
+    /** @brief Active digit count. */
+    uint8_t digits;
+    /** @brief Current display contrast level. */
+    uint8_t contrast;
+    /** @brief Current display power state. */
+    bool state = true;
+  } status_;
 
+  /**
+   * @brief Swap two byte values when first is greater than second.
+   * @param a First value.
+   * @param b Second value.
+   */
   inline void swapByte(uint8_t a, uint8_t b)
   {
     if (a > b)
@@ -599,29 +637,194 @@ private:
       b = t;
     }
   };
+
+  /**
+   * @brief Store command byte as latest command.
+   * @param lastCommand Command byte to store.
+   * @return Stored command byte.
+   */
   inline uint8_t setLastCommand(uint8_t lastCommand)
   {
     return status_.lastCommand = lastCommand;
   };
-  void waitPulseClk(); // Delay for clock pulse duration
-  void beginTransmission(); // Start condition
-  void endTransmission(); // Stop condition
-  void busWrite(uint8_t data); // Write byte to the bus
-  void gridWrite(
-    uint8_t segmentMask = 0x00,
-    uint8_t gridStart = 0,
-    uint8_t gridStop = DIGITS); // Fill screen buffer with digit masks
-  ResultCodes ackTransmission(); // Acknowledgment of transmission
-  ResultCodes busSend(uint8_t command); // Send sole command
-  ResultCodes busSend(uint8_t command,
-                      uint8_t data); // Send data at fixed address
-  ResultCodes busSend(
-    uint8_t command,
-    uint8_t *buffer,
-    uint8_t bufferBytes,
-    uint8_t *transform = 0); // Send data at auto-increment addressing
-  uint8_t getFontMask(
-    uint8_t ascii); // Lookup font mask in font table by ASCII code
+
+  /**
+   * @brief Wait one timing slot for clock pulse relaxation.
+   */
+  inline void waitPulseClk()
+  {
+    delayMicroseconds(Timing::TIMING_RELAX);
+  }
+
+  /**
+   * @brief Generate TM1637 start condition on the bus.
+   */
+  inline void beginTransmission()
+  {
+    digitalWrite(status_.pinClk, LOW);
+    digitalWrite(status_.pinDio, HIGH);
+    digitalWrite(status_.pinClk, HIGH);
+    digitalWrite(status_.pinDio, LOW);
+  }
+
+  /**
+   * @brief Generate TM1637 stop condition on the bus.
+   */
+  inline void endTransmission()
+  {
+    digitalWrite(status_.pinClk, LOW);
+    digitalWrite(status_.pinDio, LOW);
+    digitalWrite(status_.pinClk, HIGH);
+    digitalWrite(status_.pinDio, HIGH);
+  }
+
+  /**
+   * @brief Write one byte on the TM1637 serial bus.
+   * @param data Byte to transmit.
+   */
+  inline void busWrite(uint8_t data)
+  {
+    digitalWrite(status_.pinClk, LOW);
+    shiftOut(status_.pinDio, status_.pinClk, LSBFIRST, data);
+  }
+
+  /**
+   * @brief Write a segment mask to one or more digits in local screen buffer.
+   * @param segmentMask Segment mask to apply.
+   * @param gridStart Start digit index.
+   * @param gridStop End digit index.
+   */
+  inline void gridWrite(uint8_t segmentMask = 0x00,
+                        uint8_t gridStart = 0,
+                        uint8_t gridStop = DIGITS)
+  {
+    swapByte(gridStart, gridStop);
+    gridStop = min(gridStop, (uint8_t)(status_.digits - 1));
+    for (print_.digit = gridStart; print_.digit <= gridStop; print_.digit++)
+    {
+      segmentMask &= 0x7F;
+      print_.buffer[print_.digit] &= 0x80;
+      print_.buffer[print_.digit] |=
+        segmentMask;
+    }
+  }
+
+  /**
+   * @brief Read acknowledge bit after byte transfer.
+   * @return Result code of acknowledge phase.
+   */
+  inline ResultCodes ackTransmission()
+  {
+    setLastResult();
+    pinMode(status_.pinDio, INPUT_PULLUP);
+    digitalWrite(status_.pinClk, HIGH);
+    uint32_t tsStart = micros();
+    while (digitalRead(status_.pinDio))
+    {
+      if (millis() - tsStart > Timing::TIMING_ACK)
+      {
+        setLastResult(ResultCodes::ERROR_ACK);
+        break;
+      }
+    }
+    digitalWrite(status_.pinClk, LOW);
+    digitalWrite(status_.pinDio, LOW);
+    pinMode(status_.pinDio, OUTPUT);
+    return getLastResult();
+  }
+
+  /**
+   * @brief Send one command byte.
+   * @param command Command byte.
+   * @return Result code of transfer.
+   */
+  inline ResultCodes busSend(uint8_t command)
+  {
+    beginTransmission();
+    busWrite(setLastCommand(command));
+    ackTransmission();
+    endTransmission();
+    return getLastResult();
+  }
+
+  /**
+   * @brief Send command byte followed by one data byte.
+   * @param command Command byte.
+   * @param data Data byte.
+   * @return Result code of transfer.
+   */
+  inline ResultCodes busSend(uint8_t command, uint8_t data)
+  {
+    beginTransmission();
+    busWrite(setLastCommand(command));
+    if (ackTransmission())
+    {
+      endTransmission();
+      return getLastResult();
+    };
+    busWrite(data);
+    ackTransmission();
+    endTransmission();
+    return getLastResult();
+  }
+
+  /**
+   * @brief Send command and data stream with optional digit reordering.
+   * @param command Command byte.
+   * @param buffer Pointer to data buffer.
+   * @param bufferBytes Number of bytes to send.
+   * @param transform Optional transformation table for digit order.
+   * @return Result code of transfer.
+   */
+  inline ResultCodes busSend(uint8_t command,
+                             uint8_t *buffer,
+                             uint8_t bufferBytes,
+                             uint8_t *transform = 0)
+  {
+    beginTransmission();
+    busWrite(setLastCommand(command));
+    if (ackTransmission())
+    {
+      endTransmission();
+      return getLastResult();
+    };
+    for (uint8_t bufferIndex = 0; bufferIndex < bufferBytes; bufferIndex++)
+    {
+      if (transform)
+      {
+        busWrite(buffer[transform[bufferIndex]]);
+      }
+      else
+      {
+        busWrite(*buffer++);
+      }
+      if (ackTransmission())
+        break;
+    }
+    endTransmission();
+    return getLastResult();
+  }
+
+  /**
+   * @brief Lookup segment mask in font table by ASCII code.
+   * @param ascii ASCII code to search for.
+   * @return Segment mask, or FONT_MASK_WRONG if not found.
+   */
+  inline uint8_t getFontMask(uint8_t ascii)
+  {
+    uint8_t mask = FONT_MASK_WRONG;
+    for (uint8_t glyph = 0; glyph < font_.glyphs; glyph++)
+    {
+      if (ascii ==
+          pgm_read_byte(&font_.table[glyph * FONT_WIDTH + FONT_INDEX_ASCII]))
+      {
+        mask = pgm_read_byte(&font_.table[glyph * 2 + FONT_INDEX_MASK]);
+        mask &= 0x7F;
+        break;
+      }
+    }
+    return mask;
+  }
 };
 
 #endif
