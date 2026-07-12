@@ -1,6 +1,6 @@
 #ifndef GBJ_FONT7SEG_H
 #define GBJ_FONT7SEG_H
-#define GBJ_FONT7SEG_VERSION "GBJ_FONT7SEG_BASIC 1.0.0"
+#define GBJ_FONT7SEG_VERSION "GBJ_FONT7SEG_BASIC 1.1.0"
 
 #if defined(__AVR__)
 	#include <avr/pgmspace.h>
@@ -38,7 +38,7 @@ const uint8_t gbjFont7segTable[] PROGMEM =
 , 0x49, 0b00110000 // I
 , 0x4a, 0b00001110 // J
 , 0x4c, 0b00111000 // L
-, 0x4f, 0b01010100 // N = n
+, 0x4e, 0b01010100 // N = n
 , 0x4f, 0b01011100 // O = o
 , 0x50, 0b01110011 // P
 , 0x52, 0b01010000 // R = r
